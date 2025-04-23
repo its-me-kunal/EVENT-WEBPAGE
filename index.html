@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHOENIX BGMI TOURNAMENT</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Google Sign-In -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Load tournament.js first -->
+    <script src="tournament.js"></script>
+    <!-- Then load auth.js which depends on tournament.js -->
+    <script src="auth.js"></script>
+    <!-- Favicon -->
+    <link rel="icon" href="images/pr-logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- Logout Button - Fixed at top right -->
+    <button class="btn logout-btn" id="logout-btn" onclick="logout()" style="display: none;">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+    
+    <!-- Login Container -->
+    <div class="login-container" id="login-container">
+        <div class="login-box">
+            <div class="logo-container">
+                <img src="images/pr-logo.svg" alt="Phoenix Logo" class="site-logo">
+            </div>
+            <h2>Welcome to PHOENIX BGMI TOURNAMENT</h2>
+            <div class="login-tabs">
+                <button class="tab-btn active" onclick="switchTab('user')">User Login</button>
+                <button class="tab-btn" onclick="switchTab('admin')">Admin Login</button>
+            </div>
+            
+            <!-- User Login Form -->
+            <div id="user-login" class="login-form active">
+                <div id="g_id_onload"
+                     data-client_id="429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com"
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
+            </div>
+
+            <!-- Admin Login Form -->
+            <div id="admin-login" class="login-form">
+                <input type="text" id="username" placeholder="Admin Username">
+                <input type="password" id="password" placeholder="Admin Password">
+                <button onclick="login()" class="btn">Admin Login</button>
+                <p id="login-error" class="error"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until login) -->
+    <div class="main-content" id="main-content" style="display: none;">
+        <div class="site-header">
+            <img src="images/pr-logo.svg" alt="Phoenix Logo" class="header-logo">
+            <h1 class="top-title">PHOENIX BGMI TOURNAMENT</h1>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <button class="btn" onclick="scrollToEvents()">View Tournaments</button>
+            </div>
+        </section>
+
+        <!-- Tournaments Section -->
+        <section id="tournaments-section" class="tournaments-section">
+            <h2 class="section-title">Upcoming Tournaments</h2>
+            <div id="event-list" class="event-grid">
+                <!-- Tournaments will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features">
+            <h2 class="section-title">Why Choose Us</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Huge Prize Pools</h3>
+                    <p>Compete for massive rewards in every tournament</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Professional Organization</h3>
+                    <p>Well-structured tournaments with clear rules</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Fair Play</h3>
+                    <p>Anti-cheat measures and strict rules enforcement</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <h3>Live Streaming</h3>
+                    <p>Watch matches live on our official channels</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <img src="images/pr-logo.svg" alt="Phoenix Logo" class="footer-logo">
+            <p>&copy; 2024 PHOENIX BGMI TOURNAMENT. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Tournament Modal -->
+    <div id="tournament-modal" class="modal">
+        <div class="modal-content">
+            <!-- Content will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="tournament.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        // Check if tournaments should be loaded immediately (user already logged in)
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log("Index page fully loaded");
+            if (localStorage.getItem("loggedIn") === "true") {
+                console.log("User already logged in, showing content");
+                document.getElementById("login-container").style.display = "none";
+                document.getElementById("main-content").style.display = "block";
+                document.getElementById("logout-btn").style.display = "block";
+                
+                // Load tournaments
+                if (typeof loadAllTournaments === 'function') {
+                    console.log("Calling loadAllTournaments()");
+                    loadAllTournaments();
+                }
+            }
+        });
+
+        // Add scroll behavior for title
+        window.addEventListener('scroll', function() {
+            const title = document.querySelector('.top-title');
+            if (window.scrollY > 100) {
+                title.classList.add('scrolled');
+            } else {
+                title.classList.remove('scrolled');
+            }
+        });
+
+        // Function to switch between login tabs
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update forms
+            document.querySelectorAll('.login-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(`${tab}-login`).classList.add('active');
+        }
+        
+        // Function to scroll to tournaments section
+        function scrollToEvents() {
+            document.getElementById('tournaments-section').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
