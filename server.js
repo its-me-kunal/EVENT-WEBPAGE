@@ -163,6 +163,29 @@ app.post("/api/login", (req, res) => {
     return res.status(401).json({ success: false, message: "Invalid credentials" });
 });
 
+// Add a route for /api/auth/admin that redirects to the login endpoint
+app.post("/api/auth/admin", (req, res) => {
+    // Forward to the login endpoint
+    const { username, password } = req.body;
+    const user = USERS.find(u => u.username === username && u.password === password);
+
+    if (user) {
+        // Generate a simple token (for demo purposes)
+        const tokenData = `${username}:${user.role}:${Date.now()}`;
+        console.log("Creating token with data:", tokenData);
+        const token = Buffer.from(tokenData).toString('base64');
+        console.log("Generated token:", token);
+        
+        return res.json({ 
+            success: true, 
+            role: user.role, 
+            token: token,
+            message: "Login successful" 
+        });
+    }
+    return res.status(401).json({ success: false, message: "Invalid credentials" });
+});
+
 // Google OAuth Login
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
@@ -750,6 +773,25 @@ app.put("/api/tournaments/:id/stages", verifyAdminToken, async (req, res) => {
     }
 });
 
+// Add endpoint for /api/events
+app.get("/api/events", (req, res) => {
+    // Return dummy events
+    const events = [
+        {
+            title: "Weekly Tournament",
+            description: "Join our weekly tournament for casual players",
+            date: new Date().toLocaleDateString()
+        },
+        {
+            title: "Championship Series",
+            description: "The premier competition for serious esports teams",
+            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+        }
+    ];
+    
+    res.json(events);
+});
+
 // Serve index page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
@@ -762,5 +804,5 @@ app.get('/admin', (req, res) => {
 
 // Server start
 app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`✅ Server running on https://www.phoenixreaperesports.com (port ${PORT})`);
 });

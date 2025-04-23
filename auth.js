@@ -16,7 +16,7 @@ function login() {
     // Clear any previous error
     document.getElementById("login-error").textContent = "";
     
-    fetch("https://www.phoenixreaperesports.com/api/auth/admin", {
+    fetch("https://www.phoenixreaperesports.com/api/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -34,6 +34,7 @@ function login() {
         localStorage.setItem("loggedIn", "true");
         localStorage.setItem("isAdmin", "true");
         localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("role", data.role);
         
         // Display the main content
         document.getElementById("login-container").style.display = "none";
@@ -143,6 +144,7 @@ function logout() {
     localStorage.removeItem("userEmail");
     localStorage.removeItem("isAdmin");
     localStorage.removeItem("adminToken");
+    localStorage.removeItem("role");
     
     // Hide main content and show login
     document.getElementById("main-content").style.display = "none";
@@ -236,10 +238,10 @@ function fetchAdminStats() {
     totalRegistrationsEl.textContent = 'Loading...';
 
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
-    fetch("http://localhost:3000/api/admin/stats", {
+    fetch("https://www.phoenixreaperesports.com/api/admin/stats", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -341,10 +343,10 @@ function showManageEvents() {
 
 function loadAdminTournaments() {
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using token for loading tournaments:", token ? "Token exists" : "No token found");
 
-    fetch("http://localhost:3000/api/tournaments", {
+    fetch("https://www.phoenixreaperesports.com/api/tournaments", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -450,10 +452,10 @@ function createAdminEventCard(tournament) {
 async function toggleRegistration(tournamentId) {
     try {
         // Get the admin token
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("adminToken");
         console.log("Using token for toggling registration:", token ? "Token exists" : "No token found");
 
-        const response = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}/toggle-registration`, {
+        const response = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/toggle-registration`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -478,11 +480,11 @@ async function toggleRegistration(tournamentId) {
 
 function showStagesModal(tournamentId) {
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using token for showing stages modal:", token ? "Token exists" : "No token found");
 
     // First fetch the tournament details
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}`, {
+    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -669,13 +671,13 @@ async function autoAssignTeamsToGroups(tournamentId, stageItem) {
         showNotification('Fetching teams for auto-assignment...', 'success');
         
         // Get the admin token
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("adminToken");
         if (!token) {
             throw new Error('Admin token not found. Please log in again.');
         }
         
         // Fetch teams for this tournament
-        const response = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`, {
+        const response = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -810,10 +812,10 @@ async function saveStages(modal, tournamentId) {
         });
 
         // Get the admin token
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("adminToken");
         console.log("Using token for saving stages:", token ? "Token exists" : "No token found");
 
-        const response = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}/stages`, {
+        const response = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/stages`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -844,7 +846,7 @@ function createTournament(event) {
     event.preventDefault();
     
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     if (!token) {
         showNotification("You must be logged in to create a tournament", "error");
         return;
@@ -885,7 +887,7 @@ function createTournament(event) {
 
     console.log("Creating tournament with data:", tournamentData);
 
-    fetch('http://localhost:3000/api/admin/create-tournament', {
+    fetch('https://www.phoenixreaperesports.com/api/admin/create-tournament', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -912,11 +914,11 @@ function createTournament(event) {
 
 function editTournament(id) {
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using token for editing tournament:", token ? "Token exists" : "No token found");
     
     // Fetch tournament details first
-    fetch(`http://localhost:3000/api/tournaments/${id}`, {
+    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${id}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1023,7 +1025,7 @@ function updateTournament(event, id) {
     event.preventDefault();
     
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     if (!token) {
         showNotification("You must be logged in to update a tournament", "error");
         return;
@@ -1064,7 +1066,7 @@ function updateTournament(event, id) {
 
     console.log("Updating tournament with data:", updatedTournament);
 
-    fetch(`http://localhost:3000/api/admin/update-tournament/${id}`, {
+    fetch(`https://www.phoenixreaperesports.com/api/admin/update-tournament/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -1091,11 +1093,11 @@ function updateTournament(event, id) {
 
 function deleteTournament(id) {
     if (confirm("Are you sure you want to delete this tournament?")) {
-        fetch(`http://localhost:3000/api/admin/delete-tournament/${id}`, {
+        fetch(`https://www.phoenixreaperesports.com/api/admin/delete-tournament/${id}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
+                "Authorization": `Bearer ${localStorage.getItem("adminToken")}`
             }
         })
         .then(response => response.json())
@@ -1123,14 +1125,14 @@ function viewRegistrations(tournamentId) {
     modal.style.display = 'block';
     
     // Get admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     if (!token) {
         showNotification("Please log in as admin to view registrations.", "error");
         return;
     }
     
     // Fetch registrations
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`, {
+    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -1207,10 +1209,10 @@ function downloadTournamentRegistrations(tournamentId) {
     console.log('Starting download for tournament:', tournamentId);
     
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using token for downloading registrations:", token ? "Token exists" : "No token found");
     
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`, {
+    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1227,7 +1229,7 @@ function downloadTournamentRegistrations(tournamentId) {
         .then(data => {
             console.log('Registration data received:', data);
             // Get tournament details first
-            return fetch(`http://localhost:3000/api/tournaments/${tournamentId}`, {
+            return fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1310,10 +1312,10 @@ function downloadTournamentRegistrations(tournamentId) {
 
 function downloadAllRegistrations() {
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using token for downloading all registrations:", token ? "Token exists" : "No token found");
 
-    fetch("http://localhost:3000/api/tournaments", {
+    fetch("https://www.phoenixreaperesports.com/api/tournaments", {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1333,7 +1335,7 @@ function downloadAllRegistrations() {
             
             // Download registrations for each tournament
             const downloadPromises = tournaments.map(tournament => 
-                fetch(`http://localhost:3000/api/tournaments/${tournament._id}/registrations`, {
+                fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournament._id}/registrations`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1403,10 +1405,10 @@ function downloadAllRegistrations() {
 function removeTeam(tournamentId, teamId) {
     if (confirm("Are you sure you want to remove this team from the tournament?")) {
         // Get the admin token
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("adminToken");
         console.log("Using token for removing team:", token ? "Token exists" : "No token found");
 
-        fetch(`http://localhost:3000/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
+        fetch(`https://www.phoenixreaperesports.com/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
