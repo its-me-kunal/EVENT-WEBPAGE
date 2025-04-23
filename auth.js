@@ -112,7 +112,7 @@ function showMainContent() {
 }
 
 function loadEvents() {
-    fetch("http://localhost:3000/api/events")
+    fetch("https://www.phoenixreaperesports.com/api/events")
         .then(response => response.json())
         .then(events => {
             const eventList = document.getElementById("event-list");

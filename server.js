@@ -6,12 +6,11 @@ const dotenv = require("dotenv");
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
-const config = require("./config");
 
 dotenv.config();
 const app = express();
-const PORT = config.server.port;
-const GOOGLE_CLIENT_ID = config.server.googleClientId;
+const PORT = process.env.PORT || 3000;
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -104,7 +103,7 @@ const Team = mongoose.model("Team", teamSchema);
 
 // Middleware
 app.use(cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", config.domain.url, `https://www.${config.domain.url.replace('https://', '')}`, `http://www.${config.domain.url.replace('https://', '')}`],
+    origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", "https://www.phoenixreaperesports.com"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -764,5 +763,4 @@ app.get('/admin', (req, res) => {
 // Server start
 app.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
-    console.log(`✅ Website can be accessed at https://www.phoenixreaperesports.com`);
 });
