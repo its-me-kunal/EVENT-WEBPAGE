@@ -25,9 +25,9 @@
             </div>
             <h2>Admin Login</h2>
             <div id="login-error" class="error"></div>
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button class="btn" onclick="login()">Login</button>
+            <input type="text" id="admin-username" placeholder="Username" required>
+            <input type="password" id="admin-password" placeholder="Password" required>
+            <button class="btn" onclick="adminLogin()">Login</button>
         </div>
     </div>
 
@@ -36,12 +36,15 @@
             <img src="images/pr-logo.svg" alt="Phoenix Logo" class="header-logo">
             <h1 class="top-title">PHOENIX BGMI TOURNAMENT ADMIN</h1>
         </div>
-        <!-- Admin content will be loaded here -->
+        <div id="admin-dashboard" class="admin-dashboard" style="display: none;">
+            <!-- Admin dashboard content will be loaded here by the JS -->
+        </div>
+        <!-- Other admin content may be added here -->
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="auth.js"></script>
+    <script src="admin.js"></script>
     <script src="export.js"></script>
     
     <script>
@@ -51,6 +54,7 @@
                 document.getElementById("login-container").style.display = "none";
                 document.getElementById("main-content").style.display = "block";
                 document.getElementById("logout-btn").style.display = "block";
+                showAdminDashboard();
             }
         });
     </script>

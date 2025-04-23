@@ -34,10 +34,10 @@ function adminLogin() {
             localStorage.setItem("role", "admin");
             if (data.token) {
                 console.log("Storing token:", data.token);
-                localStorage.setItem("token", data.token);
+                localStorage.setItem("adminToken", data.token);
             } else {
                 console.warn("No token received from server");
-                localStorage.setItem("token", "");
+                localStorage.setItem("adminToken", "");
             }
             showAdminDashboard();
             loadTournaments();
@@ -113,7 +113,7 @@ function fetchAdminStats() {
     totalRegistrationsEl.textContent = 'Loading...';
 
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
     fetch("https://www.phoenixreaperesports.com/api/admin/stats", {
@@ -203,7 +203,7 @@ function submitTournamentData(tournamentData) {
     console.log("Submitting tournament data:", tournamentData);
     
     // Get the admin token
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("adminToken");
     console.log("Using admin token:", token ? "Token exists" : "No token found");
 
     fetch("https://www.phoenixreaperesports.com/api/admin/create-tournament", {
@@ -501,7 +501,7 @@ function showTeamsModal(teams, tournamentId) {
 
 function deleteTournament(tournamentId) {
     if (confirm("Are you sure you want to delete this tournament? This action cannot be undone.")) {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("adminToken");
         console.log("Using token for deletion:", token);
         
         fetch(`https://www.phoenixreaperesports.com/api/admin/delete-tournament/${tournamentId}`, {
@@ -537,7 +537,7 @@ function removeTeam(tournamentId, teamId) {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
+                "Authorization": `Bearer ${localStorage.getItem("adminToken")}`
             }
         })
         .then(response => response.json())
@@ -560,7 +560,7 @@ function removeTeam(tournamentId, teamId) {
 function logout() {
     localStorage.removeItem("loggedIn");
     localStorage.removeItem("role");
-    localStorage.removeItem("token");
+    localStorage.removeItem("adminToken");
     window.location.reload();
 }
 
