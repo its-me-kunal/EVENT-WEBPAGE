@@ -4,12 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Get the base API URL depending on environment
-function getApiBaseUrl() {
-    // Use relative URLs to work with any domain
-    return "/api";
-}
-
 function login() {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
@@ -19,7 +13,7 @@ function login() {
         return;
     }
 
-    fetch(`${getApiBaseUrl()}/login`, {
+    fetch("http://localhost:3000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -102,7 +96,7 @@ function showMainContent() {
 }
 
 function loadEvents() {
-    fetch(`${getApiBaseUrl()}/events`)
+    fetch("http://localhost:3000/api/events")
         .then(response => response.json())
         .then(events => {
             const eventList = document.getElementById("event-list");
@@ -157,10 +151,10 @@ function handleCredentialResponse(response) {
     loginError.textContent = "Signing in...";
     
     // Log the request details
-    console.log("Attempting to send request to:", `${getApiBaseUrl()}/google-login`);
+    console.log("Attempting to send request to:", "http://localhost:3000/api/google-login");
     console.log("Request payload:", { token: response.credential.substring(0, 20) + "..." });
 
-    fetch(`${getApiBaseUrl()}/google-login`, {
+    fetch("http://localhost:3000/api/google-login", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -236,7 +230,7 @@ function fetchAdminStats() {
     const token = localStorage.getItem("token");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
-    fetch(`${getApiBaseUrl()}/admin/stats`, {
+    fetch("http://localhost:3000/api/admin/stats", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -341,7 +335,7 @@ function loadAdminTournaments() {
     const token = localStorage.getItem("token");
     console.log("Using token for loading tournaments:", token ? "Token exists" : "No token found");
 
-    fetch(`${getApiBaseUrl()}/tournaments`, {
+    fetch("http://localhost:3000/api/tournaments", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -450,7 +444,7 @@ async function toggleRegistration(tournamentId) {
         const token = localStorage.getItem("token");
         console.log("Using token for toggling registration:", token ? "Token exists" : "No token found");
 
-        const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/toggle-registration`, {
+        const response = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}/toggle-registration`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -479,7 +473,7 @@ function showStagesModal(tournamentId) {
     console.log("Using token for showing stages modal:", token ? "Token exists" : "No token found");
 
     // First fetch the tournament details
-    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`, {
+    fetch(`http://localhost:3000/api/tournaments/${tournamentId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -672,7 +666,7 @@ async function autoAssignTeamsToGroups(tournamentId, stageItem) {
         }
         
         // Fetch teams for this tournament
-        const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/registrations`, {
+        const response = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -810,7 +804,7 @@ async function saveStages(modal, tournamentId) {
         const token = localStorage.getItem("token");
         console.log("Using token for saving stages:", token ? "Token exists" : "No token found");
 
-        const response = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/stages`, {
+        const response = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}/stages`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -882,7 +876,7 @@ function createTournament(event) {
 
     console.log("Creating tournament with data:", tournamentData);
 
-    fetch(`${getApiBaseUrl()}/admin/create-tournament`, {
+    fetch('http://localhost:3000/api/admin/create-tournament', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -913,7 +907,7 @@ function editTournament(id) {
     console.log("Using token for editing tournament:", token ? "Token exists" : "No token found");
     
     // Fetch tournament details first
-    fetch(`${getApiBaseUrl()}/tournaments/${id}`, {
+    fetch(`http://localhost:3000/api/tournaments/${id}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1061,7 +1055,7 @@ function updateTournament(event, id) {
 
     console.log("Updating tournament with data:", updatedTournament);
 
-    fetch(`${getApiBaseUrl()}/admin/update-tournament/${id}`, {
+    fetch(`http://localhost:3000/api/admin/update-tournament/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -1088,7 +1082,7 @@ function updateTournament(event, id) {
 
 function deleteTournament(id) {
     if (confirm("Are you sure you want to delete this tournament?")) {
-        fetch(`${getApiBaseUrl()}/admin/delete-tournament/${id}`, {
+        fetch(`http://localhost:3000/api/admin/delete-tournament/${id}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -1127,7 +1121,7 @@ function viewRegistrations(tournamentId) {
     }
     
     // Fetch registrations
-    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/registrations`, {
+    fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -1207,7 +1201,7 @@ function downloadTournamentRegistrations(tournamentId) {
     const token = localStorage.getItem("token");
     console.log("Using token for downloading registrations:", token ? "Token exists" : "No token found");
     
-    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/registrations`, {
+    fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1224,7 +1218,7 @@ function downloadTournamentRegistrations(tournamentId) {
         .then(data => {
             console.log('Registration data received:', data);
             // Get tournament details first
-            return fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`, {
+            return fetch(`http://localhost:3000/api/tournaments/${tournamentId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1310,7 +1304,7 @@ function downloadAllRegistrations() {
     const token = localStorage.getItem("token");
     console.log("Using token for downloading all registrations:", token ? "Token exists" : "No token found");
 
-    fetch(`${getApiBaseUrl()}/tournaments`, {
+    fetch("http://localhost:3000/api/tournaments", {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1330,7 +1324,7 @@ function downloadAllRegistrations() {
             
             // Download registrations for each tournament
             const downloadPromises = tournaments.map(tournament => 
-                fetch(`${getApiBaseUrl()}/tournaments/${tournament._id}/registrations`, {
+                fetch(`http://localhost:3000/api/tournaments/${tournament._id}/registrations`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1403,7 +1397,7 @@ function removeTeam(tournamentId, teamId) {
         const token = localStorage.getItem("token");
         console.log("Using token for removing team:", token ? "Token exists" : "No token found");
 
-        fetch(`${getApiBaseUrl()}/admin/tournaments/${tournamentId}/teams/${teamId}`, {
+        fetch(`http://localhost:3000/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
