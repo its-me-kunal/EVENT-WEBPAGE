@@ -5,33 +5,49 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    
     if (!username || !password) {
-        document.getElementById("login-error").textContent = "Username and Password cannot be empty!";
+        document.getElementById("login-error").textContent = "Please enter both username and password";
         return;
     }
-
-    fetch("http://localhost:3000/api/login", {
+    
+    // Clear any previous error
+    document.getElementById("login-error").textContent = "";
+    
+    fetch("https://www.phoenixreaperesports.com/api/auth/admin", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify({ username, password })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Login failed");
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.success) {
-            localStorage.setItem("loggedIn", "true");
-            localStorage.setItem("role", data.role || "user");
-            localStorage.setItem("token", data.token || "");
-            showMainContent();
-        } else {
-            document.getElementById("login-error").textContent = "Invalid credentials!";
+        // Store auth data
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("isAdmin", "true");
+        localStorage.setItem("adminToken", data.token);
+        
+        // Display the main content
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+        document.getElementById("logout-btn").style.display = "block";
+        
+        // Load tournaments
+        if (typeof loadAllTournaments === 'function') {
+            loadAllTournaments();
         }
     })
     .catch(error => {
-        console.error("Login Error:", error);
-        document.getElementById("login-error").textContent = "Server error, please try again.";
+        console.error("Login error:", error);
+        document.getElementById("login-error").textContent = "Invalid username or password";
     });
 }
 
@@ -122,73 +138,66 @@ function loadEvents() {
 }
 
 function logout() {
+    // Clear local storage
     localStorage.removeItem("loggedIn");
-    localStorage.removeItem("role");
-    localStorage.removeItem("token");
-    localStorage.removeItem("userName");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("isAdmin");
+    localStorage.removeItem("adminToken");
     
-    // Hide the logout button
-    const logoutBtn = document.getElementById("logout-btn");
-    if (logoutBtn) {
-        logoutBtn.style.display = "none";
-    }
+    // Hide main content and show login
+    document.getElementById("main-content").style.display = "none";
+    document.getElementById("logout-btn").style.display = "none";
+    document.getElementById("login-container").style.display = "flex";
     
-    window.location.reload(); // Reload the page to reset everything
+    // Reset any form errors
+    document.getElementById("login-error").textContent = "";
+    
+    // Switch to user login tab
+    switchTab('user');
 }
 
-// Handle Google Sign-In Callback
+// Handle Google Sign-In response
 function handleCredentialResponse(response) {
-    const loginError = document.getElementById("login-error");
+    console.log("Google Sign-In response received");
     
-    if (!response || !response.credential) {
-        console.error("Google Sign-In failed: No credential received.");
-        loginError.textContent = "Google Sign-In failed. Please try again.";
-        return;
-    }
-
-    // Show loading state
-    loginError.textContent = "Signing in...";
+    // The ID token you need to pass to your backend
+    const idToken = response.credential;
     
-    // Log the request details
-    console.log("Attempting to send request to:", "http://localhost:3000/api/google-login");
-    console.log("Request payload:", { token: response.credential.substring(0, 20) + "..." });
-
-    fetch("http://localhost:3000/api/google-login", {
+    // Verify the token with your backend
+    fetch("https://www.phoenixreaperesports.com/api/auth/google", {
         method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            "Accept": "application/json"
+        headers: {
+            "Content-Type": "application/json"
         },
-        body: JSON.stringify({ token: response.credential })
+        body: JSON.stringify({ idToken })
     })
-    .then(res => {
-        console.log("Response status:", res.status);
-        if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Authentication failed");
         }
-        return res.json();
+        return response.json();
     })
     .then(data => {
-        console.log("Response data:", data);
-        if (data.success) {
-            localStorage.setItem("loggedIn", "true");
-            localStorage.setItem("role", "user");
-            localStorage.setItem("userName", data.user.name);
-            localStorage.setItem("userEmail", data.user.email);
-            showMainContent();
-        } else {
-            throw new Error(data.message || "Authentication failed");
+        // Store auth data
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("userEmail", data.email);
+        if (data.isAdmin) {
+            localStorage.setItem("isAdmin", "true");
+        }
+        
+        // Display the main content
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+        document.getElementById("logout-btn").style.display = "block";
+        
+        // Load tournaments
+        if (typeof loadAllTournaments === 'function') {
+            loadAllTournaments();
         }
     })
-    .catch(err => {
-        console.error("Google Sign-In Error:", err);
-        console.error("Error details:", {
-            name: err.name,
-            message: err.message,
-            stack: err.stack
-        });
-        loginError.textContent = "Connection error. Please check if the server is running.";
+    .catch(error => {
+        console.error("Authentication error:", error);
+        document.getElementById("login-error").textContent = "Authentication failed. Please try again.";
     });
 }
 
