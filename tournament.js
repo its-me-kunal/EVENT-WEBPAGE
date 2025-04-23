@@ -1,10 +1,16 @@
 // tournament.js - Frontend functions for BGMI Tournament Registration
 
+// Get the base API URL depending on environment
+function getApiBaseUrl() {
+    // Use relative URLs to work with any domain
+    return "/api";
+}
+
 // Tournament Display on Main Page
 function loadAllTournaments() {
     console.log("Loading tournaments...");
     
-    fetch("http://localhost:3000/api/tournaments")
+    fetch(`${getApiBaseUrl()}/tournaments`)
         .then(response => {
             console.log("Response status:", response.status);
             return response.json();
@@ -117,7 +123,7 @@ function viewTournamentDetails(tournamentId) {
     // Get the user's email
     const userEmail = localStorage.getItem("userEmail");
     
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}`)
+    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Server responded with status: ${response.status}`);
@@ -311,7 +317,7 @@ function checkTeamRegistration(tournamentId, stages) {
     }
 
     // Fetch teams for this tournament and check if the user's team is registered
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`)
+    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/registrations`)
         .then(response => response.json())
         .then(data => {
             if (!data.success || !data.teams || data.teams.length === 0) {
@@ -515,7 +521,7 @@ function submitRegistration(event, tournamentId) {
     }
 
     // Send registration request with authentication token
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}/register`, {
+    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/register`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`

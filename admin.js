@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Get the base API URL depending on environment
+function getApiBaseUrl() {
+    // Use relative URLs to work with any domain
+    return "/api";
+}
+
 function adminLogin() {
     const username = document.getElementById("admin-username").value.trim();
     const password = document.getElementById("admin-password").value.trim();
@@ -21,7 +27,7 @@ function adminLogin() {
         return;
     }
 
-    fetch("http://localhost:3000/api/login", {
+    fetch(`${getApiBaseUrl()}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -116,7 +122,7 @@ function fetchAdminStats() {
     const token = localStorage.getItem("token");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
-    fetch("http://localhost:3000/api/admin/stats", {
+    fetch(`${getApiBaseUrl()}/admin/stats`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -200,39 +206,38 @@ function submitTournamentData(tournamentData) {
         return;
     }
 
-    console.log("Submitting tournament data:", tournamentData);
-    
     // Get the admin token
     const token = localStorage.getItem("token");
-    console.log("Using admin token:", token ? "Token exists" : "No token found");
+    console.log("Using token for tournament creation:", token ? "Token exists" : "No token found");
 
-    fetch("http://localhost:3000/api/admin/create-tournament", {
+    fetch(`${getApiBaseUrl()}/admin/create-tournament`, {
         method: "POST",
-        headers: { 
+        headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(tournamentData)
     })
     .then(response => {
-        console.log("Server response status:", response.status);
+        console.log("Tournament creation response status:", response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     })
     .then(data => {
-        console.log("Server response data:", data);
+        console.log("Tournament creation result:", data);
         if (data.success) {
-            alert("Tournament created successfully!");
+            showNotification('Tournament created successfully!', 'success');
             clearTournamentForm();
-            loadTournaments();
+            loadTournaments(); // Refresh tournament list
         } else {
-            const errorMessage = data.message || "Unknown error occurred";
-            console.error("Tournament creation failed:", errorMessage);
-            alert("Error creating tournament: " + errorMessage);
+            throw new Error(data.message || 'Failed to create tournament');
         }
     })
     .catch(error => {
-        console.error("Tournament Creation Error:", error);
-        alert("Server error, please try again. Details: " + error.message);
+        console.error("Error creating tournament:", error);
+        showNotification(`Failed to create tournament: ${error.message}`, 'error');
     });
 }
 
@@ -265,66 +270,95 @@ function clearTournamentForm() {
 }
 
 function loadTournaments() {
-    fetch("http://localhost:3000/api/tournaments")
-        .then(response => response.json())
-        .then(tournaments => {
-            const tournamentList = document.getElementById("tournament-list");
-            if (!tournamentList) {
-                console.error("Tournament list element not found!");
-                return;
-            }
+    const tournamentList = document.getElementById('tournament-list');
+    if (!tournamentList) {
+        console.error("Tournament list element not found!");
+        return;
+    }
+
+    // Show loading state
+    tournamentList.innerHTML = "<p>Loading tournaments...</p>";
+
+    // Get the admin token
+    const token = localStorage.getItem("token");
+    console.log("Using token for loading tournaments:", token ? "Token exists" : "No token found");
+
+    fetch(`${getApiBaseUrl()}/tournaments`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        console.log("Tournaments response status:", response.status);
+        return response.json();
+    })
+    .then(tournaments => {
+        console.log("Tournaments loaded:", tournaments);
+        tournamentList.innerHTML = "";
+
+        if (!tournaments || tournaments.length === 0) {
+            tournamentList.innerHTML = "<p>No tournaments found. Create one to get started!</p>";
+            return;
+        }
+
+        // Create tournament cards
+        tournaments.forEach(tournament => {
+            const card = document.createElement('div');
+            card.className = 'admin-event-card';
             
-            tournamentList.innerHTML = ""; // Clear previous events
+            // Format dates
+            const startDate = tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : 'Not set';
             
-            if (!tournaments || tournaments.length === 0) {
-                tournamentList.innerHTML = "<p>No tournaments available.</p>";
-                return;
-            }
+            // Determine registration status
+            const registrationStatus = tournament.registrationOpen !== false ? 
+                '<span class="registration-status open">Open</span>' : 
+                '<span class="registration-status closed">Closed</span>';
             
-            // Add download all button at the top
-            const downloadAllButton = document.createElement('button');
-            downloadAllButton.className = 'btn download-all-btn';
-            downloadAllButton.innerHTML = '<i class="fas fa-download"></i> Download All Registrations';
-            downloadAllButton.onclick = downloadRegistrations;
-            tournamentList.appendChild(downloadAllButton);
+            // Build card HTML
+            card.innerHTML = `
+                <h3>${tournament.title || 'Unnamed Tournament'}</h3>
+                <div class="admin-event-details">
+                    <p><strong>Date:</strong> ${startDate}</p>
+                    <p><strong>Teams:</strong> ${tournament.registeredTeams || 0}/${tournament.maxTeams || 'Unlimited'}</p>
+                    <p><strong>Registration:</strong> ${registrationStatus}</p>
+                </div>
+                <div class="admin-event-actions">
+                    <button class="btn edit-btn" onclick="editTournament('${tournament._id}')">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn view-btn" onclick="viewRegistrations('${tournament._id}')">
+                        <i class="fas fa-users"></i> View Teams
+                    </button>
+                    <button class="btn stage-btn" onclick="showStagesModal('${tournament._id}')">
+                        <i class="fas fa-list-ol"></i> Stages
+                    </button>
+                    <button class="btn toggle-btn ${tournament.registrationOpen !== false ? 'close-reg' : ''}" 
+                        onclick="toggleRegistration('${tournament._id}')">
+                        <i class="fas ${tournament.registrationOpen !== false ? 'fa-lock' : 'fa-unlock'}"></i> 
+                        ${tournament.registrationOpen !== false ? 'Close Registration' : 'Open Registration'}
+                    </button>
+                    <button class="btn download-btn" onclick="downloadTournamentRegistrations('${tournament._id}')">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                    <button class="btn delete-btn" onclick="deleteTournament('${tournament._id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            `;
             
-            tournaments.forEach(tournament => {
-                const tournamentCard = document.createElement('div');
-                tournamentCard.className = 'event-card';
-                tournamentCard.innerHTML = `
-                    <h3>${tournament.title}</h3>
-                    <p>${tournament.description ? tournament.description.substring(0, 100) + (tournament.description.length > 100 ? '...' : '') : 'No description'}</p>
-                    <p><strong>Date:</strong> ${formatDate(tournament.startDate)}</p>
-                    <p><strong>Teams:</strong> ${tournament.registeredTeams || 0}/${tournament.maxTeams}</p>
-                    <div class="card-actions">
-                        <button class="btn" onclick="editTournament('${tournament.id}')">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="btn" onclick="viewRegistrations('${tournament.id}')">
-                            <i class="fas fa-users"></i> View Teams
-                        </button>
-                        <button class="btn" onclick="downloadTournamentRegistrations('${tournament.id}')">
-                            <i class="fas fa-download"></i> Download
-                        </button>
-                        <button class="btn" onclick="deleteTournament('${tournament.id}')">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                `;
-                tournamentList.appendChild(tournamentCard);
-            });
-        })
-        .catch(error => {
-            console.error("Error loading tournaments:", error);
-            const tournamentList = document.getElementById("tournament-list");
-            if (tournamentList) {
-                tournamentList.innerHTML = "<p>Error loading tournaments. Please try again later.</p>";
-            }
+            tournamentList.appendChild(card);
         });
+    })
+    .catch(error => {
+        console.error("Error loading tournaments:", error);
+        tournamentList.innerHTML = "<p>Error loading tournaments. Please try again.</p>";
+        showNotification('Failed to load tournaments. Please try again.', 'error');
+    });
 }
 
 function editTournament(tournamentId) {
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}`)
+    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`)
         .then(response => response.json())
         .then(tournament => {
             if (tournament) {
@@ -418,7 +452,7 @@ function fillTournamentForm(tournament) {
 }
 
 function viewRegistrations(tournamentId) {
-    fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`)
+    fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/registrations`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.teams.length > 0) {
@@ -504,7 +538,7 @@ function deleteTournament(tournamentId) {
         const token = localStorage.getItem("token");
         console.log("Using token for deletion:", token);
         
-        fetch(`http://localhost:3000/api/admin/delete-tournament/${tournamentId}`, {
+        fetch(`${getApiBaseUrl()}/admin/delete-tournament/${tournamentId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -533,7 +567,7 @@ function deleteTournament(tournamentId) {
 
 function removeTeam(tournamentId, teamId) {
     if (confirm("Are you sure you want to remove this team from the tournament?")) {
-        fetch(`http://localhost:3000/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
+        fetch(`${getApiBaseUrl()}/admin/tournaments/${tournamentId}/teams/${teamId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -579,7 +613,7 @@ function downloadRegistrations() {
         document.body.appendChild(loadingDiv);
 
         // Fetch all tournaments
-        fetch('http://localhost:3000/api/tournaments')
+        fetch(`${getApiBaseUrl()}/tournaments`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch tournaments');
@@ -614,7 +648,7 @@ function downloadRegistrations() {
                     ];
 
                     // Fetch registrations for this tournament
-                    return fetch(`http://localhost:3000/api/tournaments/${tournament.id}/registrations`)
+                    return fetch(`${getApiBaseUrl()}/tournaments/${tournament.id}/registrations`)
                         .then(response => {
                             if (!response.ok) {
                                 throw new Error(`Failed to fetch registrations for tournament ${tournament.title}`);
@@ -732,14 +766,14 @@ async function downloadTournamentRegistrations(tournamentId) {
         document.body.appendChild(loadingDiv);
 
         // Fetch tournament details
-        const tournamentResponse = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}`);
+        const tournamentResponse = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}`);
         if (!tournamentResponse.ok) {
             throw new Error('Failed to fetch tournament details');
         }
         const tournament = await tournamentResponse.json();
 
         // Fetch registrations for this tournament
-        const registrationsResponse = await fetch(`http://localhost:3000/api/tournaments/${tournamentId}/registrations`);
+        const registrationsResponse = await fetch(`${getApiBaseUrl()}/tournaments/${tournamentId}/registrations`);
         if (!registrationsResponse.ok) {
             throw new Error('Failed to fetch registrations');
         }
