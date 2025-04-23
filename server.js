@@ -103,7 +103,7 @@ const Team = mongoose.model("Team", teamSchema);
 
 // Middleware
 app.use(cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", "https://yourdomain.com"],
+    origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", "https://www.phoenixreaperesports.com", "https://phoenixreaperesports.com"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
