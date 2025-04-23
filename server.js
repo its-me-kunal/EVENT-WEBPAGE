@@ -113,6 +113,9 @@ app.use(express.static(path.join(__dirname, './')));
 
 // Middleware to verify admin token
 const verifyAdminToken = (req, res, next) => {
+    console.log("Verifying admin token...");
+    console.log("Headers:", req.headers);
+    
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         console.log("Authorization header missing or invalid format");
@@ -122,13 +125,24 @@ const verifyAdminToken = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         // Simple token verification (for demo purposes)
+        console.log("Token received:", token);
         const decoded = Buffer.from(token, 'base64').toString().split(':');
         console.log("Decoded token:", decoded);
         
-        if (decoded.length < 2 || decoded[1] !== 'admin') {
+        // Check if token has the right structure
+        if (decoded.length < 2) {
+            console.log("Token validation failed: Invalid token format");
+            return res.status(403).json({ success: false, message: "Forbidden - Invalid token format" });
+        }
+        
+        // Check if the role is admin
+        if (decoded[1] !== 'admin') {
             console.log("Token validation failed: Not an admin token");
             return res.status(403).json({ success: false, message: "Forbidden - Not an admin token" });
         }
+        
+        // Token is valid, proceed
+        console.log("Token validation passed");
         next();
     } catch (error) {
         console.error("Token verification error:", error);

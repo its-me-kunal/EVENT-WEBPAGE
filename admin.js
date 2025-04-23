@@ -27,33 +27,54 @@ function adminLogin() {
         return;
     }
 
+    // Clear previous error
+    loginError.textContent = "Logging in...";
+
     fetch(`${getApiBaseUrl()}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         console.log("Login response:", data);
+        
         if (data.success && data.role === "admin") {
+            // Store credentials in localStorage
             localStorage.setItem("loggedIn", "true");
             localStorage.setItem("role", "admin");
+            
             if (data.token) {
-                console.log("Storing token:", data.token);
+                console.log("Received token:", data.token);
                 localStorage.setItem("token", data.token);
             } else {
                 console.warn("No token received from server");
                 localStorage.setItem("token", "");
             }
-            showAdminDashboard();
-            loadTournaments();
+            
+            // Show success message
+            loginError.textContent = "Login successful! Redirecting...";
+            loginError.style.color = "green";
+            
+            // Redirect to admin dashboard after short delay
+            setTimeout(() => {
+                showAdminDashboard();
+                loadTournaments();
+            }, 500);
         } else {
             loginError.textContent = "Invalid admin credentials!";
+            loginError.style.color = "red";
         }
     })
     .catch(error => {
         console.error("Login Error:", error);
-        loginError.textContent = "Server error, please try again.";
+        loginError.textContent = "Server error: " + error.message;
+        loginError.style.color = "red";
     });
 }
 
