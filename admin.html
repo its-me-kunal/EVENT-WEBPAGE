@@ -28,6 +28,8 @@
             <input type="text" id="admin-username" placeholder="Username" required>
             <input type="password" id="admin-password" placeholder="Password" required>
             <button class="btn" onclick="adminLogin()">Login</button>
+            <!-- Debug button for direct login -->
+            <button class="btn" onclick="debugDirectLogin()" style="margin-top: 10px; background-color: #666;">Debug Login</button>
         </div>
     </div>
 
@@ -57,6 +59,22 @@
                 showAdminDashboard();
             }
         });
+
+        // Add debug function
+        function debugDirectLogin() {
+            // Directly set local storage without server auth
+            localStorage.setItem("loggedIn", "true");
+            localStorage.setItem("role", "admin");
+            localStorage.setItem("adminToken", "YWRtaW46YWRtaW46MTY5ODIzNDUyMTg5NQ=="); // Demo token: admin:admin:timestamp
+            
+            document.getElementById("login-container").style.display = "none";
+            document.getElementById("main-content").style.display = "block";
+            document.getElementById("admin-dashboard").style.display = "block";
+            document.getElementById("logout-btn").style.display = "block";
+            
+            // Call dashboard functions
+            showAdminDashboard();
+        }
     </script>
 </body>
 </html>

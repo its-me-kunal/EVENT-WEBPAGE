@@ -16,20 +16,36 @@ function adminLogin() {
     const password = document.getElementById("admin-password").value.trim();
     const loginError = document.getElementById("login-error");
 
+    console.log("Login attempt with username:", username);
+
     if (!username || !password) {
         loginError.textContent = "Username and Password cannot be empty!";
         return;
     }
 
+    console.log("Sending login request to server...");
+    
+    // Try the primary login endpoint first
     fetch("https://www.phoenixreaperesports.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log("Login response status:", response.status);
+        if (!response.ok && response.status === 404) {
+            // If the endpoint doesn't exist, try the alternative endpoint
+            console.log("Primary endpoint failed, trying alternative endpoint");
+            return tryAlternativeLogin(username, password);
+        }
+        return response.json();
+    })
     .then(data => {
-        console.log("Login response:", data);
+        if (!data) return; // This happens if we switched to alternative endpoint
+        
+        console.log("Login response data:", data);
         if (data.success && data.role === "admin") {
+            console.log("Admin login successful");
             localStorage.setItem("loggedIn", "true");
             localStorage.setItem("role", "admin");
             if (data.token) {
@@ -42,6 +58,7 @@ function adminLogin() {
             showAdminDashboard();
             loadTournaments();
         } else {
+            console.error("Login failed:", data.message || "Unknown error");
             loginError.textContent = "Invalid admin credentials!";
         }
     })
@@ -49,6 +66,41 @@ function adminLogin() {
         console.error("Login Error:", error);
         loginError.textContent = "Server error, please try again.";
     });
+    
+    // Function to try the alternative login endpoint
+    function tryAlternativeLogin(username, password) {
+        return fetch("https://www.phoenixreaperesports.com/api/auth/admin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        })
+        .then(response => {
+            console.log("Alternative login response status:", response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Alternative login response data:", data);
+            if (data.success && data.role === "admin") {
+                console.log("Admin login successful via alternative endpoint");
+                localStorage.setItem("loggedIn", "true");
+                localStorage.setItem("role", "admin");
+                if (data.token) {
+                    console.log("Storing token:", data.token);
+                    localStorage.setItem("adminToken", data.token);
+                } else {
+                    console.warn("No token received from server");
+                    localStorage.setItem("adminToken", "");
+                }
+                showAdminDashboard();
+                loadTournaments();
+                return null; // Signal that we've handled this response
+            } else {
+                console.error("Alternative login failed:", data.message || "Unknown error");
+                loginError.textContent = "Invalid admin credentials!";
+                return data;
+            }
+        });
+    }
 }
 
 function showAdminDashboard() {
@@ -60,8 +112,12 @@ function showAdminDashboard() {
 
     // Hide login container
     document.getElementById("login-container").style.display = "none";
+    // Show main content
+    document.getElementById("main-content").style.display = "block";
     // Show admin dashboard
     adminContent.style.display = "block";
+    // Show logout button
+    document.getElementById("logout-btn").style.display = "block";
 
     // Create admin dashboard content if not already present
     let mainContent = adminContent.querySelector(".admin-main-content");

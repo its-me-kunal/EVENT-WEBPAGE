@@ -144,6 +144,9 @@ const USERS = [
 // Login endpoint for both admin and normal users
 app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
+    console.log("Login request received:", { username, password: password ? "***" : undefined });
+    
+    // Find the user
     const user = USERS.find(u => u.username === username && u.password === password);
 
     if (user) {
@@ -153,6 +156,7 @@ app.post("/api/login", (req, res) => {
         const token = Buffer.from(tokenData).toString('base64');
         console.log("Generated token:", token);
         
+        console.log(`Login successful for ${username} with role ${user.role}`);
         return res.json({ 
             success: true, 
             role: user.role, 
@@ -160,6 +164,8 @@ app.post("/api/login", (req, res) => {
             message: "Login successful" 
         });
     }
+    
+    console.log(`Login failed for ${username} - Invalid credentials`);
     return res.status(401).json({ success: false, message: "Invalid credentials" });
 });
 
