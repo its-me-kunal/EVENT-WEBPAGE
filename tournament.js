@@ -4,9 +4,11 @@
 function loadAllTournaments() {
     console.log("Loading tournaments...");
     
-    fetch("http://localhost:3007/api/tournaments")
+    fetch("/api/tournaments")
         .then(response => {
-            console.log("Response status:", response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return response.json();
         })
         .then(tournaments => {
@@ -117,7 +119,7 @@ function viewTournamentDetails(tournamentId) {
     // Get the user's email
     const userEmail = localStorage.getItem("userEmail");
     
-    fetch(`http://localhost:3007/api/tournaments/${tournamentId}`)
+    fetch(`/api/tournaments/${tournamentId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Server responded with status: ${response.status}`);
@@ -346,7 +348,7 @@ function checkTeamRegistration(tournamentId, stages) {
     }
 
     // Fetch teams for this tournament and check if the user's team is registered
-    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/team-registration?email=${encodeURIComponent(userEmail)}`)
+    fetch(`/api/tournaments/${tournamentId}/team-registration?email=${encodeURIComponent(userEmail)}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Server responded with status: ${response.status}`);
@@ -555,7 +557,7 @@ function submitRegistration(event, tournamentId) {
     }
 
     // Submit the form data to the server
-    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/register`, {
+    fetch(`/api/tournaments/${tournamentId}/register`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`
