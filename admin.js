@@ -888,7 +888,7 @@ async function downloadTournamentRegistrations(tournamentId) {
             document.body.removeChild(loadingDiv);
         }
     }
-}
+} 
 
 function showCreateEventForm() {
     const adminContent = document.getElementById('admin-content');

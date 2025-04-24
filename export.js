@@ -8,7 +8,7 @@ async function downloadRegistrations() {
         downloadBtn.disabled = true;
         downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing download...';
         
-        const response = await fetch('/api/registrations');
+        const response = await fetch('http://localhost:3007/api/registrations');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -113,7 +113,7 @@ async function downloadTournamentRegistrations(tournamentId) {
             downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         }
         
-        const response = await fetch(`/api/tournaments/${tournamentId}/registrations`);
+        const response = await fetch(`http://localhost:3007/api/tournaments/${tournamentId}/registrations`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -258,7 +258,7 @@ document.head.appendChild(style);
 async function fetchAllRegistrations() {
     try {
         console.log('Fetching all registrations...');
-        const response = await fetch('/api/registrations');
+        const response = await fetch('http://localhost:3007/api/registrations');
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -274,7 +274,7 @@ async function fetchAllRegistrations() {
 async function fetchRegistrations(tournamentId) {
     try {
         console.log(`Fetching registrations for tournament: ${tournamentId}`);
-        const response = await fetch(`/api/tournaments/${tournamentId}/registrations`)
+        const response = await fetch(`http://localhost:3007/api/tournaments/${tournamentId}/registrations`)
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
