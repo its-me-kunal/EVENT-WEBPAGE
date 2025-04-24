@@ -9,8 +9,10 @@ const multer = require("multer");
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3000;
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
+const PORT = 3007; // Use a fixed port to avoid conflicts
+console.log("Using fixed port:", PORT);
+const MONGO_URI = "mongodb+srv://kunal:1234@cluster0.b5in9nl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const GOOGLE_CLIENT_ID = "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -29,8 +31,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
+// Update the MongoDB Connection to use the hardcoded connection string
+mongoose.connect(MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => console.log("✅ Connected to MongoDB"))
@@ -103,13 +105,19 @@ const Team = mongoose.model("Team", teamSchema);
 
 // Middleware
 app.use(cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5500", "http://127.0.0.1:5500", "https://www.phoenixreaperesports.com"],
+    origin: ["http://localhost:3007", "http://127.0.0.1:3007", "http://localhost:5500", "http://127.0.0.1:5500", "https://www.phoenixreaperesports.com", "*"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, './')));
+
+// Log all requests
+app.use((req, res, next) => {
+    console.log(`Request received: ${req.method} ${req.url} from ${req.ip}`);
+    next();
+});
 
 // Middleware to verify admin token
 const verifyAdminToken = (req, res, next) => {
@@ -157,12 +165,17 @@ app.post("/api/login", (req, res) => {
         console.log("Generated token:", token);
         
         console.log(`Login successful for ${username} with role ${user.role}`);
-        return res.json({ 
+        
+        // Ensure role is properly set in response
+        const responseData = { 
             success: true, 
-            role: user.role, 
+            role: user.role,  // This should be "admin" for admin user
             token: token,
             message: "Login successful" 
-        });
+        };
+        
+        console.log("Sending response data:", responseData);
+        return res.json(responseData);
     }
     
     console.log(`Login failed for ${username} - Invalid credentials`);
@@ -810,5 +823,7 @@ app.get('/admin', (req, res) => {
 
 // Server start
 app.listen(PORT, () => {
-    console.log(`✅ Server running on https://www.phoenixreaperesports.com (port ${PORT})`);
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`📁 Static files served from: ${path.join(__dirname, './')}`);
+    console.log(`🔗 Access your app at http://localhost:${PORT}`);
 });

@@ -8,6 +8,8 @@ function login() {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
     
+    console.log("Login attempt with username:", username);
+    
     if (!username || !password) {
         document.getElementById("login-error").textContent = "Please enter both username and password";
         return;
@@ -16,7 +18,7 @@ function login() {
     // Clear any previous error
     document.getElementById("login-error").textContent = "";
     
-    fetch("https://www.phoenixreaperesports.com/api/login", {
+    fetch("http://localhost:3007/api/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -24,27 +26,30 @@ function login() {
         body: JSON.stringify({ username, password })
     })
     .then(response => {
+        console.log("Login response status:", response.status);
         if (!response.ok) {
             throw new Error("Login failed");
         }
         return response.json();
     })
     .then(data => {
+        console.log("Login response data:", data);
+        
         // Store auth data
         localStorage.setItem("loggedIn", "true");
         localStorage.setItem("isAdmin", "true");
         localStorage.setItem("adminToken", data.token);
         localStorage.setItem("role", data.role);
         
+        console.log("Set role in localStorage:", data.role);
+        
         // Display the main content
         document.getElementById("login-container").style.display = "none";
         document.getElementById("main-content").style.display = "block";
         document.getElementById("logout-btn").style.display = "block";
         
-        // Load tournaments
-        if (typeof loadAllTournaments === 'function') {
-            loadAllTournaments();
-        }
+        // Show admin content if admin role
+        showMainContent();
     })
     .catch(error => {
         console.error("Login error:", error);
@@ -63,16 +68,26 @@ function showMainContent() {
     }
     
     const role = localStorage.getItem("role");
+    console.log("Current role from localStorage:", role);
     
     if (role === "admin") {
+        console.log("Admin role detected, showing admin panel");
+        
         // Hide regular content and show admin panel
-        document.querySelector('.hero').style.display = 'none';
-        document.querySelector('#tournaments-section').style.display = 'none';
-        document.querySelector('.features').style.display = 'none';
+        const heroSection = document.querySelector('.hero');
+        const tournamentsSection = document.querySelector('#tournaments-section');
+        const featuresSection = document.querySelector('.features');
+        
+        if (heroSection) heroSection.style.display = 'none';
+        if (tournamentsSection) tournamentsSection.style.display = 'none';
+        if (featuresSection) featuresSection.style.display = 'none';
+        
+        console.log("Regular sections hidden");
         
         // Create and show admin panel if it doesn't exist
         let adminPanel = document.getElementById('admin-panel');
         if (!adminPanel) {
+            console.log("Creating new admin panel");
             adminPanel = document.createElement('div');
             adminPanel.id = 'admin-panel';
             adminPanel.className = 'admin-panel';
@@ -84,22 +99,41 @@ function showMainContent() {
                 </div>
                 <div id="admin-content"></div>
             `;
-            document.querySelector('.main-content').appendChild(adminPanel);
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.appendChild(adminPanel);
+                console.log("Admin panel appended to main content");
+            } else {
+                console.error("Main content element not found");
+            }
+        } else {
+            console.log("Admin panel already exists, showing it");
         }
-        adminPanel.style.display = 'block';
+        
+        if (adminPanel) {
+            adminPanel.style.display = 'block';
+            console.log("Admin panel display set to block");
+        }
         
         // Load admin dashboard
         loadAdminDashboard();
     } else {
+        console.log("User role detected, showing regular content");
+        
         // Show regular content for normal users
-        document.querySelector('.hero').style.display = 'block';
-        document.querySelector('#tournaments-section').style.display = 'block';
-        document.querySelector('.features').style.display = 'block';
+        const heroSection = document.querySelector('.hero');
+        const tournamentsSection = document.querySelector('#tournaments-section');
+        const featuresSection = document.querySelector('.features');
+        
+        if (heroSection) heroSection.style.display = 'block';
+        if (tournamentsSection) tournamentsSection.style.display = 'block';
+        if (featuresSection) featuresSection.style.display = 'block';
         
         // Hide admin panel if it exists
         const adminPanel = document.getElementById('admin-panel');
         if (adminPanel) {
             adminPanel.style.display = 'none';
+            console.log("Admin panel hidden");
         }
         
         // Load tournaments for regular users
@@ -113,7 +147,7 @@ function showMainContent() {
 }
 
 function loadEvents() {
-    fetch("https://www.phoenixreaperesports.com/api/events")
+    fetch("http://localhost:3007/api/events")
         .then(response => response.json())
         .then(events => {
             const eventList = document.getElementById("event-list");
@@ -166,7 +200,7 @@ function handleCredentialResponse(response) {
     const idToken = response.credential;
     
     // Verify the token with your backend
-    fetch("https://www.phoenixreaperesports.com/api/auth/google", {
+    fetch("http://localhost:3007/api/auth/google", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -241,7 +275,7 @@ function fetchAdminStats() {
     const token = localStorage.getItem("adminToken");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
-    fetch("https://www.phoenixreaperesports.com/api/admin/stats", {
+    fetch("http://localhost:3007/api/admin/stats", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -346,7 +380,7 @@ function loadAdminTournaments() {
     const token = localStorage.getItem("adminToken");
     console.log("Using token for loading tournaments:", token ? "Token exists" : "No token found");
 
-    fetch("https://www.phoenixreaperesports.com/api/tournaments", {
+    fetch("http://localhost:3007/api/tournaments", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -455,7 +489,7 @@ async function toggleRegistration(tournamentId) {
         const token = localStorage.getItem("adminToken");
         console.log("Using token for toggling registration:", token ? "Token exists" : "No token found");
 
-        const response = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/toggle-registration`, {
+        const response = await fetch(`http://localhost:3007/api/tournaments/${tournamentId}/toggle-registration`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -484,7 +518,7 @@ function showStagesModal(tournamentId) {
     console.log("Using token for showing stages modal:", token ? "Token exists" : "No token found");
 
     // First fetch the tournament details
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}`, {
+    fetch(`http://localhost:3007/api/tournaments/${tournamentId}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -677,7 +711,7 @@ async function autoAssignTeamsToGroups(tournamentId, stageItem) {
         }
         
         // Fetch teams for this tournament
-        const response = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`, {
+        const response = await fetch(`http://localhost:3007/api/tournaments/${tournamentId}/registrations`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -815,7 +849,7 @@ async function saveStages(modal, tournamentId) {
         const token = localStorage.getItem("adminToken");
         console.log("Using token for saving stages:", token ? "Token exists" : "No token found");
 
-        const response = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/stages`, {
+        const response = await fetch(`http://localhost:3007/api/tournaments/${tournamentId}/stages`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -887,7 +921,7 @@ function createTournament(event) {
 
     console.log("Creating tournament with data:", tournamentData);
 
-    fetch('https://www.phoenixreaperesports.com/api/admin/create-tournament', {
+    fetch('http://localhost:3007/api/admin/create-tournament', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -918,7 +952,7 @@ function editTournament(id) {
     console.log("Using token for editing tournament:", token ? "Token exists" : "No token found");
     
     // Fetch tournament details first
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${id}`, {
+    fetch(`http://localhost:3007/api/tournaments/${id}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1066,7 +1100,7 @@ function updateTournament(event, id) {
 
     console.log("Updating tournament with data:", updatedTournament);
 
-    fetch(`https://www.phoenixreaperesports.com/api/admin/update-tournament/${id}`, {
+    fetch(`http://localhost:3007/api/admin/update-tournament/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -1093,7 +1127,7 @@ function updateTournament(event, id) {
 
 function deleteTournament(id) {
     if (confirm("Are you sure you want to delete this tournament?")) {
-        fetch(`https://www.phoenixreaperesports.com/api/admin/delete-tournament/${id}`, {
+        fetch(`http://localhost:3007/api/admin/delete-tournament/${id}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -1132,7 +1166,7 @@ function viewRegistrations(tournamentId) {
     }
     
     // Fetch registrations
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`, {
+    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/registrations`, {
         headers: {
             'Authorization': `Bearer ${token}`
         }
@@ -1212,7 +1246,7 @@ function downloadTournamentRegistrations(tournamentId) {
     const token = localStorage.getItem("adminToken");
     console.log("Using token for downloading registrations:", token ? "Token exists" : "No token found");
     
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`, {
+    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/registrations`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1229,7 +1263,7 @@ function downloadTournamentRegistrations(tournamentId) {
         .then(data => {
             console.log('Registration data received:', data);
             // Get tournament details first
-            return fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}`, {
+            return fetch(`http://localhost:3007/api/tournaments/${tournamentId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1315,7 +1349,7 @@ function downloadAllRegistrations() {
     const token = localStorage.getItem("adminToken");
     console.log("Using token for downloading all registrations:", token ? "Token exists" : "No token found");
 
-    fetch("https://www.phoenixreaperesports.com/api/tournaments", {
+    fetch("http://localhost:3007/api/tournaments", {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -1335,7 +1369,7 @@ function downloadAllRegistrations() {
             
             // Download registrations for each tournament
             const downloadPromises = tournaments.map(tournament => 
-                fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournament._id}/registrations`, {
+                fetch(`http://localhost:3007/api/tournaments/${tournament._id}/registrations`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1408,7 +1442,7 @@ function removeTeam(tournamentId, teamId) {
         const token = localStorage.getItem("adminToken");
         console.log("Using token for removing team:", token ? "Token exists" : "No token found");
 
-        fetch(`https://www.phoenixreaperesports.com/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
+        fetch(`http://localhost:3007/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",

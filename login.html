@@ -343,6 +343,107 @@
     </div>
 
     <script>
+        // Check for existing login on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem("loggedIn") === "true" && localStorage.getItem("role") === "admin") {
+                document.getElementById("login-container").style.display = "none";
+                document.getElementById("admin-dashboard").style.display = "block";
+                loadTournaments();
+            }
+        });
+        
+        // Function to handle admin login
+        function adminLogin() {
+            const username = document.getElementById("admin-username").value.trim();
+            const password = document.getElementById("admin-password").value.trim();
+            const loginError = document.getElementById("login-error");
+            
+            console.log("Login attempt with username:", username);
+            
+            if (!username || !password) {
+                loginError.textContent = "Username and Password cannot be empty!";
+                return;
+            }
+            
+            // Hardcoded admin credentials
+            if (username === "admin" && password === "1234") {
+                console.log("Admin login successful");
+                localStorage.setItem("loggedIn", "true");
+                localStorage.setItem("role", "admin");
+                localStorage.setItem("adminToken", "YWRtaW46YWRtaW46MTIzNA=="); // Basic token
+                
+                document.getElementById("login-container").style.display = "none";
+                document.getElementById("admin-dashboard").style.display = "block";
+                loadDummyTournaments(); // Load dummy data
+                return;
+            }
+            
+            loginError.textContent = "Invalid admin credentials!";
+        }
+
+        // Function to load dummy tournaments
+        function loadDummyTournaments() {
+            const tournamentList = document.getElementById("tournament-list");
+            if (!tournamentList) {
+                console.error("Tournament list element not found!");
+                return;
+            }
+            
+            tournamentList.innerHTML = ""; // Clear previous events
+            
+            // Create dummy tournament data
+            const tournaments = [
+                {
+                    id: "1",
+                    title: "BGMI Season Championship",
+                    description: "Join the biggest BGMI tournament of the season with top teams competing for a massive prize pool.",
+                    startDate: new Date(2023, 11, 15),
+                    registeredTeams: 12,
+                    maxTeams: 16
+                },
+                {
+                    id: "2",
+                    title: "Qualifier Round Tournament",
+                    description: "Participate in our qualifier tournament to earn a spot in the championship finals.",
+                    startDate: new Date(2023, 11, 5),
+                    registeredTeams: 8,
+                    maxTeams: 16
+                }
+            ];
+            
+            tournaments.forEach(tournament => {
+                const tournamentCard = document.createElement('div');
+                tournamentCard.className = 'event-card';
+                tournamentCard.innerHTML = `
+                    <h3>${tournament.title}</h3>
+                    <p>${tournament.description ? tournament.description.substring(0, 100) + (tournament.description.length > 100 ? '...' : '') : 'No description'}</p>
+                    <p><strong>Date:</strong> ${formatDate(tournament.startDate)}</p>
+                    <p><strong>Teams:</strong> ${tournament.registeredTeams || 0}/${tournament.maxTeams}</p>
+                    <div class="card-actions">
+                        <button class="btn">Edit</button>
+                        <button class="btn">View Teams</button>
+                        <button class="btn">Delete</button>
+                    </div>
+                `;
+                tournamentList.appendChild(tournamentCard);
+            });
+        }
+        
+        // Function to format date
+        function formatDate(dateString) {
+            if (!dateString) return "TBD";
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + " " + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        // Function to log out
+        function logout() {
+            localStorage.removeItem("loggedIn");
+            localStorage.removeItem("role");
+            localStorage.removeItem("adminToken");
+            window.location.reload();
+        }
+        
         // Preview uploaded banner
         document.getElementById('tournament-banner').addEventListener('change', function(e) {
             const file = e.target.files[0];

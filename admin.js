@@ -25,8 +25,8 @@ function adminLogin() {
 
     console.log("Sending login request to server...");
     
-    // Try the primary login endpoint first
-    fetch("https://www.phoenixreaperesports.com/api/login", {
+    // Try the primary login endpoint first with relative URL
+    fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -69,7 +69,7 @@ function adminLogin() {
     
     // Function to try the alternative login endpoint
     function tryAlternativeLogin(username, password) {
-        return fetch("https://www.phoenixreaperesports.com/api/auth/admin", {
+        return fetch("/api/auth/admin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password })
@@ -172,7 +172,7 @@ function fetchAdminStats() {
     const token = localStorage.getItem("adminToken");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
-    fetch("https://www.phoenixreaperesports.com/api/admin/stats", {
+    fetch("/api/admin/stats", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -262,7 +262,7 @@ function submitTournamentData(tournamentData) {
     const token = localStorage.getItem("adminToken");
     console.log("Using admin token:", token ? "Token exists" : "No token found");
 
-    fetch("https://www.phoenixreaperesports.com/api/admin/create-tournament", {
+    fetch("/api/admin/create-tournament", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -321,7 +321,7 @@ function clearTournamentForm() {
 }
 
 function loadTournaments() {
-    fetch("https://www.phoenixreaperesports.com/api/tournaments")
+    fetch("/api/tournaments")
         .then(response => response.json())
         .then(tournaments => {
             const tournamentList = document.getElementById("tournament-list");
@@ -380,7 +380,7 @@ function loadTournaments() {
 }
 
 function editTournament(tournamentId) {
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}`)
+    fetch(`/api/tournaments/${tournamentId}`)
         .then(response => response.json())
         .then(tournament => {
             if (tournament) {
@@ -388,7 +388,7 @@ function editTournament(tournamentId) {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         })
-        .catch(error => console.error("Error fetching tournament details:", error));
+        .catch(error => console.error("Error loading tournament details:", error));
 }
 
 function fillTournamentForm(tournament) {
@@ -474,7 +474,7 @@ function fillTournamentForm(tournament) {
 }
 
 function viewRegistrations(tournamentId) {
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`)
+    fetch(`/api/tournaments/${tournamentId}/registrations`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.teams.length > 0) {
@@ -484,7 +484,7 @@ function viewRegistrations(tournamentId) {
                 alert("No teams registered for this tournament yet.");
             }
         })
-        .catch(error => console.error("Error fetching registrations:", error));
+        .catch(error => console.error("Error loading registrations:", error));
 }
 
 function showTeamsModal(teams, tournamentId) {
@@ -560,7 +560,7 @@ function deleteTournament(tournamentId) {
         const token = localStorage.getItem("adminToken");
         console.log("Using token for deletion:", token);
         
-        fetch(`https://www.phoenixreaperesports.com/api/admin/delete-tournament/${tournamentId}`, {
+        fetch(`/api/admin/delete-tournament/${tournamentId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -589,7 +589,7 @@ function deleteTournament(tournamentId) {
 
 function removeTeam(tournamentId, teamId) {
     if (confirm("Are you sure you want to remove this team from the tournament?")) {
-        fetch(`https://www.phoenixreaperesports.com/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
+        fetch(`/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -635,7 +635,7 @@ function downloadRegistrations() {
         document.body.appendChild(loadingDiv);
 
         // Fetch all tournaments
-        fetch('https://www.phoenixreaperesports.com/api/tournaments')
+        fetch('/api/tournaments')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch tournaments');
@@ -670,16 +670,16 @@ function downloadRegistrations() {
                     ];
 
                     // Fetch registrations for this tournament
-                    return fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournament.id}/registrations`)
+                    return fetch(`/api/tournaments/${tournament.id}/registrations`)
                         .then(response => {
                             if (!response.ok) {
-                                throw new Error(`Failed to fetch registrations for tournament ${tournament.title}`);
+                                throw new Error('Failed to fetch registrations');
                             }
                             return response.json();
                         })
-                        .then(registrations => {
+                        .then(data => {
                             // Add data rows
-                            registrations.teams.forEach(team => {
+                            data.teams.forEach(team => {
                                 worksheet.addRow({
                                     teamName: team.name || 'N/A',
                                     teamCaptain: team.leader || 'N/A',
@@ -788,14 +788,14 @@ async function downloadTournamentRegistrations(tournamentId) {
         document.body.appendChild(loadingDiv);
 
         // Fetch tournament details
-        const tournamentResponse = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}`);
+        const tournamentResponse = await fetch(`/api/tournaments/${tournamentId}`);
         if (!tournamentResponse.ok) {
             throw new Error('Failed to fetch tournament details');
         }
         const tournament = await tournamentResponse.json();
 
         // Fetch registrations for this tournament
-        const registrationsResponse = await fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/registrations`);
+        const registrationsResponse = await fetch(`/api/tournaments/${tournamentId}/registrations`);
         if (!registrationsResponse.ok) {
             throw new Error('Failed to fetch registrations');
         }

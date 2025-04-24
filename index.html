@@ -128,15 +128,13 @@
             console.log("Index page fully loaded");
             if (localStorage.getItem("loggedIn") === "true") {
                 console.log("User already logged in, showing content");
-                document.getElementById("login-container").style.display = "none";
-                document.getElementById("main-content").style.display = "block";
-                document.getElementById("logout-btn").style.display = "block";
+                console.log("Role in localStorage:", localStorage.getItem("role"));
                 
-                // Load tournaments
-                if (typeof loadAllTournaments === 'function') {
-                    console.log("Calling loadAllTournaments()");
-                    loadAllTournaments();
-                }
+                // We should call showMainContent instead of manually setting display
+                showMainContent();
+                
+                // Show logout button
+                document.getElementById("logout-btn").style.display = "block";
             }
         });
 
@@ -163,11 +161,6 @@
                 form.classList.remove('active');
             });
             document.getElementById(`${tab}-login`).classList.add('active');
-        }
-        
-        // Function to scroll to tournaments section
-        function scrollToEvents() {
-            document.getElementById('tournaments-section').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>

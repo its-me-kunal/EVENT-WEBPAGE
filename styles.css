@@ -75,11 +75,14 @@ body {
     max-width: 1000px;
     padding: 20px;
     margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .hero .btn {
     margin-top: 60px;
-    margin-left: 450px;
     position: relative;
     z-index: 10;
 }

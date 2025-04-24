@@ -4,7 +4,7 @@
 function loadAllTournaments() {
     console.log("Loading tournaments...");
     
-    fetch("https://www.phoenixreaperesports.com/api/tournaments")
+    fetch("http://localhost:3007/api/tournaments")
         .then(response => {
             console.log("Response status:", response.status);
             return response.json();
@@ -117,7 +117,7 @@ function viewTournamentDetails(tournamentId) {
     // Get the user's email
     const userEmail = localStorage.getItem("userEmail");
     
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}`)
+    fetch(`http://localhost:3007/api/tournaments/${tournamentId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Server responded with status: ${response.status}`);
@@ -312,7 +312,7 @@ function checkTeamRegistration(tournamentId, stages) {
     }
 
     // Fetch teams for this tournament and check if the user's team is registered
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/team-registration?email=${encodeURIComponent(userEmail)}`)
+    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/team-registration?email=${encodeURIComponent(userEmail)}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Server responded with status: ${response.status}`);
@@ -521,7 +521,7 @@ function submitRegistration(event, tournamentId) {
     }
 
     // Submit the form data to the server
-    fetch(`https://www.phoenixreaperesports.com/api/tournaments/${tournamentId}/register`, {
+    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/register`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`
