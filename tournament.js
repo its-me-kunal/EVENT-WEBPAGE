@@ -197,47 +197,81 @@ function viewTournamentDetails(tournamentId) {
                                 <form id="registration-form" onsubmit="submitRegistration(event, '${tournamentId}')">
                                     <div class="team-info">
                                         <h4>Team Information</h4>
-                                        <input type="text" id="team-name" placeholder="Team Name" required>
-                                        <input type="text" id="team-leader" placeholder="Team Leader Name" required>
-                                        <input type="tel" id="team-contact" placeholder="Team Leader Contact Number" required>
-                                        <input type="email" id="team-email" placeholder="Team Leader Email" required 
-                                               pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
-                                               title="Please enter a valid email address">
-                                        <div class="email-validation-message" id="email-validation"></div>
+                                        <div class="mobile-form-grid">
+                                            <input type="text" id="team-name" placeholder="Team Name" required>
+                                            <input type="text" id="team-leader" placeholder="Team Leader Name" required>
+                                            <input type="tel" id="team-contact" placeholder="Team Leader Contact Number" required>
+                                            <input type="email" id="team-email" placeholder="Team Leader Email" required 
+                                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                                                title="Please enter a valid email address">
+                                            <div class="email-validation-message" id="email-validation"></div>
+                                        </div>
                                     </div>
 
                                     <div class="player-info">
-                                        <h4>Player 1 (Team Leader)</h4>
-                                        <input type="text" id="player1-uid" placeholder="Player 1 UID" required>
-                                        <input type="text" id="player1-ign" placeholder="Player 1 IGN" required>
-                                        <input type="file" id="player1-discord" accept="image/*" required>
-                                        <div class="file-preview" id="player1-preview"></div>
+                                        <h4>Player Information</h4>
+                                        
+                                        <div class="player-section">
+                                            <h5>Player 1 (Team Leader)</h5>
+                                            <div class="mobile-form-grid">
+                                                <input type="text" id="player1-uid" placeholder="Player 1 UID" required>
+                                                <input type="text" id="player1-ign" placeholder="Player 1 IGN" required>
+                                                <div class="file-upload-container">
+                                                    <label for="player1-discord" class="file-upload-label">Discord Screenshot</label>
+                                                    <input type="file" id="player1-discord" accept="image/*" required>
+                                                </div>
+                                                <div class="file-preview" id="player1-preview"></div>
+                                            </div>
+                                        </div>
 
-                                        <h4>Player 2</h4>
-                                        <input type="text" id="player2-uid" placeholder="Player 2 UID" required>
-                                        <input type="text" id="player2-ign" placeholder="Player 2 IGN" required>
-                                        <input type="file" id="player2-discord" accept="image/*" required>
-                                        <div class="file-preview" id="player2-preview"></div>
+                                        <div class="player-section">
+                                            <h5>Player 2</h5>
+                                            <div class="mobile-form-grid">
+                                                <input type="text" id="player2-uid" placeholder="Player 2 UID" required>
+                                                <input type="text" id="player2-ign" placeholder="Player 2 IGN" required>
+                                                <div class="file-upload-container">
+                                                    <label for="player2-discord" class="file-upload-label">Discord Screenshot</label>
+                                                    <input type="file" id="player2-discord" accept="image/*" required>
+                                                </div>
+                                                <div class="file-preview" id="player2-preview"></div>
+                                            </div>
+                                        </div>
 
-                                        <h4>Player 3</h4>
-                                        <input type="text" id="player3-uid" placeholder="Player 3 UID" required>
-                                        <input type="text" id="player3-ign" placeholder="Player 3 IGN" required>
-                                        <input type="file" id="player3-discord" accept="image/*" required>
-                                        <div class="file-preview" id="player3-preview"></div>
+                                        <div class="player-section">
+                                            <h5>Player 3</h5>
+                                            <div class="mobile-form-grid">
+                                                <input type="text" id="player3-uid" placeholder="Player 3 UID" required>
+                                                <input type="text" id="player3-ign" placeholder="Player 3 IGN" required>
+                                                <div class="file-upload-container">
+                                                    <label for="player3-discord" class="file-upload-label">Discord Screenshot</label>
+                                                    <input type="file" id="player3-discord" accept="image/*" required>
+                                                </div>
+                                                <div class="file-preview" id="player3-preview"></div>
+                                            </div>
+                                        </div>
 
-                                        <h4>Player 4</h4>
-                                        <input type="text" id="player4-uid" placeholder="Player 4 UID" required>
-                                        <input type="text" id="player4-ign" placeholder="Player 4 IGN" required>
-                                        <input type="file" id="player4-discord" accept="image/*" required>
-                                        <div class="file-preview" id="player4-preview"></div>
+                                        <div class="player-section">
+                                            <h5>Player 4</h5>
+                                            <div class="mobile-form-grid">
+                                                <input type="text" id="player4-uid" placeholder="Player 4 UID" required>
+                                                <input type="text" id="player4-ign" placeholder="Player 4 IGN" required>
+                                                <div class="file-upload-container">
+                                                    <label for="player4-discord" class="file-upload-label">Discord Screenshot</label>
+                                                    <input type="file" id="player4-discord" accept="image/*" required>
+                                                </div>
+                                                <div class="file-preview" id="player4-preview"></div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="additional-info">
                                         <h4>Additional Information</h4>
-                                        <input type="text" id="team-experience" placeholder="Previous Tournament Experience (Optional)">
-                                        <textarea id="team-achievements" placeholder="Team Achievements (Optional)"></textarea>
-                                        <input type="text" id="team-social" placeholder="Team Social Media Handle (Optional)">
-                                        <textarea id="team-notes" placeholder="Additional Notes (Optional)"></textarea>
+                                        <div class="mobile-form-grid">
+                                            <input type="text" id="team-experience" placeholder="Previous Tournament Experience (Optional)">
+                                            <textarea id="team-achievements" placeholder="Team Achievements (Optional)"></textarea>
+                                            <input type="text" id="team-social" placeholder="Team Social Media Handle (Optional)">
+                                            <textarea id="team-notes" placeholder="Additional Notes (Optional)"></textarea>
+                                        </div>
                                     </div>
 
                                     <div class="terms-section">

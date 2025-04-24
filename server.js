@@ -105,7 +105,7 @@ const Team = mongoose.model("Team", teamSchema);
 
 // Middleware
 app.use(cors({
-    origin: ["http://localhost:3007", "http://127.0.0.1:3007", "http://localhost:5500", "http://127.0.0.1:5500", "https://www.phoenixreaperesports.com", "*"],
+    origin: "*", // Allow all origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -214,7 +214,9 @@ app.post("/api/google-login", async (req, res) => {
         if (!token) {
             return res.status(400).json({ success: false, message: "No token provided" });
         }
-
+        
+        console.log("Received Google login request with token");
+        
         const ticket = await client.verifyIdToken({
             idToken: token,
             audience: GOOGLE_CLIENT_ID
@@ -226,12 +228,14 @@ app.post("/api/google-login", async (req, res) => {
         }
 
         const { email, name } = payload;
+        console.log("Google auth successful for:", email);
 
         // Store user in MongoDB if not already stored
         let user = await User.findOne({ email });
         if (!user) {
             user = new User({ name, email, role: "user" });
             await user.save();
+            console.log("Created new user:", email);
         }
 
         return res.json({ 

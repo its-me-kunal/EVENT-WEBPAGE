@@ -200,12 +200,12 @@ function handleCredentialResponse(response) {
     const idToken = response.credential;
     
     // Verify the token with your backend
-    fetch("http://localhost:3007/api/auth/google", {
+    fetch("http://localhost:3007/api/google-login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ idToken })
+        body: JSON.stringify({ token: idToken })
     })
     .then(response => {
         if (!response.ok) {
@@ -216,8 +216,9 @@ function handleCredentialResponse(response) {
     .then(data => {
         // Store auth data
         localStorage.setItem("loggedIn", "true");
-        localStorage.setItem("userEmail", data.email);
-        if (data.isAdmin) {
+        localStorage.setItem("userEmail", data.user.email);
+        localStorage.setItem("role", data.role);
+        if (data.role === "admin") {
             localStorage.setItem("isAdmin", "true");
         }
         
@@ -226,10 +227,8 @@ function handleCredentialResponse(response) {
         document.getElementById("main-content").style.display = "block";
         document.getElementById("logout-btn").style.display = "block";
         
-        // Load tournaments
-        if (typeof loadAllTournaments === 'function') {
-            loadAllTournaments();
-        }
+        // Show main content based on user role
+        showMainContent();
     })
     .catch(error => {
         console.error("Authentication error:", error);

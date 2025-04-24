@@ -888,4 +888,82 @@ async function downloadTournamentRegistrations(tournamentId) {
             document.body.removeChild(loadingDiv);
         }
     }
+}
+
+function showCreateEventForm() {
+    const adminContent = document.getElementById('admin-content');
+    adminContent.innerHTML = `
+        <div class="create-event-form">
+            <h3>Create New Tournament</h3>
+            <form id="create-tournament-form" onsubmit="createTournament(event)" class="responsive-form">
+                <div class="form-group-mobile">
+                    <input type="text" id="title" placeholder="Tournament Title" required>
+                    <textarea id="description" placeholder="Tournament Description" required></textarea>
+                </div>
+                
+                <div class="form-group-mobile">
+                    <div class="form-group">
+                        <label for="tournamentPoster">Tournament Poster (Image URL or upload)</label>
+                        <input type="text" id="tournamentPoster" placeholder="Tournament Poster URL">
+                        <input type="file" id="tournamentPosterUpload" accept="image/*" class="file-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="roadmapPoster">Roadmap Poster (Image URL or upload)</label>
+                        <input type="text" id="roadmapPoster" placeholder="Roadmap Poster URL">
+                        <input type="file" id="roadmapPosterUpload" accept="image/*" class="file-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prizePoolPoster">Prize Pool Distribution Poster (Image URL or upload)</label>
+                        <input type="text" id="prizePoolPoster" placeholder="Prize Pool Poster URL">
+                        <input type="file" id="prizePoolPosterUpload" accept="image/*" class="file-input">
+                    </div>
+                </div>
+                
+                <div class="form-group-mobile">
+                    <div class="date-inputs">
+                        <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="datetime-local" id="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date</label>
+                            <input type="datetime-local" id="endDate" required>
+                        </div>
+                    </div>
+                    
+                    <div class="number-inputs">
+                        <div class="form-group">
+                            <label for="maxTeams">Max Teams</label>
+                            <input type="number" id="maxTeams" placeholder="Maximum Teams" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="entryFee">Entry Fee</label>
+                            <input type="number" id="entryFee" placeholder="Entry Fee" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="prizePool">Prize Pool</label>
+                            <input type="number" id="prizePool" placeholder="Prize Pool" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rules">Tournament Rules</label>
+                    <textarea id="rules" placeholder="Tournament Rules" required></textarea>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn back-btn" onclick="showAdminDashboard()">Cancel</button>
+                    <button type="submit" class="btn">Create Tournament</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    // Set up file upload handlers
+    document.getElementById('tournamentPosterUpload').addEventListener('change', handleFileUpload);
+    document.getElementById('roadmapPosterUpload').addEventListener('change', handleFileUpload);
+    document.getElementById('prizePoolPosterUpload').addEventListener('change', handleFileUpload);
 } 
