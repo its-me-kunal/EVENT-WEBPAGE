@@ -825,6 +825,48 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
 
+// Get team registration status for a specific user
+app.get("/api/tournaments/:id/team-registration", async (req, res) => {
+    try {
+        const tournamentId = req.params.id;
+        const userEmail = req.query.email;
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "User email is required"
+            });
+        }
+
+        // Check if tournament exists
+        const tournament = await Tournament.findById(tournamentId);
+        if (!tournament) {
+            return res.status(404).json({
+                success: false,
+                message: "Tournament not found"
+            });
+        }
+
+        // Get registered teams for this tournament
+        const teams = await Team.find({ 
+            tournamentId: tournamentId,
+            userEmail: userEmail
+        });
+
+        return res.json({
+            success: true,
+            teams: teams
+        });
+    } catch (error) {
+        console.error("Error checking team registration:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to check team registration",
+            error: error.message
+        });
+    }
+});
+
 // Server start
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
