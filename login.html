@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - BGMI Tournament Management</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Config script (load first) -->
-    <script src="config.js"></script>
     <script defer src="admin.js"></script>
     <!-- Favicon -->
     <link rel="icon" href="images/pr-logo.svg" type="image/svg+xml">
@@ -198,11 +196,6 @@
             <input type="password" id="admin-password" placeholder="Password">
             <button onclick="adminLogin()" class="btn">Login</button>
             <p id="login-error" class="error"></p>
-            
-            <!-- Emergency fallback login button -->
-            <button onclick="emergencyLogin()" class="btn" style="margin-top: 15px; background-color: #c93400;">
-                Emergency Direct Login
-            </button>
         </div>
     </div>
 
@@ -357,31 +350,7 @@
                 document.getElementById("admin-dashboard").style.display = "block";
                 loadTournaments();
             }
-            
-            console.log("Login page loaded with config:", window.PRConfig);
         });
-        
-        // Emergency direct login function that bypasses the API
-        function emergencyLogin() {
-            console.log("Emergency direct login activated");
-            localStorage.setItem("loggedIn", "true");
-            localStorage.setItem("role", "admin");
-            localStorage.setItem("adminToken", "YWRtaW46YWRtaW46MTIzNA=="); // Default admin token
-            
-            // Hide login container
-            document.getElementById("login-container").style.display = "none";
-            // Show admin dashboard
-            document.getElementById("admin-dashboard").style.display = "block";
-            
-            // Load admin data
-            try {
-                loadTournaments();
-            } catch (error) {
-                console.error("Error loading tournaments:", error);
-            }
-            
-            console.log("Emergency login completed. You are now logged in as admin.");
-        }
         
         // Function to handle admin login
         function adminLogin() {

@@ -17,7 +17,6 @@ function adminLogin() {
     const loginError = document.getElementById("login-error");
 
     console.log("Login attempt with username:", username);
-    console.log("Using API URL:", window.PRConfig.API_BASE_URL);
 
     if (!username || !password) {
         loginError.textContent = "Username and Password cannot be empty!";
@@ -25,44 +24,24 @@ function adminLogin() {
     }
 
     console.log("Sending login request to server...");
-    loginError.textContent = "Connecting to server...";
     
-    // Use API base URL from config with complete URL
-    const loginUrl = `${window.PRConfig.API_BASE_URL}/api/login`;
-    console.log("Login URL:", loginUrl);
-    
-    fetch(loginUrl, {
+    // Try the primary login endpoint first with relative URL
+    fetch("/api/login", {
         method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        body: JSON.stringify({ username, password }),
-        credentials: "same-origin"
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
     })
     .then(response => {
         console.log("Login response status:", response.status);
-        console.log("Login response headers:", 
-            Array.from(response.headers.entries())
-                .map(header => `${header[0]}: ${header[1]}`)
-                .join(", ")
-        );
-        
-        if (!response.ok) {
-            if (response.status === 404) {
-                console.log("Primary endpoint failed (404), trying alternative endpoint");
-                loginError.textContent = "Trying alternative login endpoint...";
-                return tryAlternativeLogin(username, password);
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok && response.status === 404) {
+            // If the endpoint doesn't exist, try the alternative endpoint
+            console.log("Primary endpoint failed, trying alternative endpoint");
+            return tryAlternativeLogin(username, password);
         }
         return response.json();
     })
     .then(data => {
-        if (!data) {
-            console.log("No data received from server");
-            return; // This happens if we switched to alternative endpoint
-        }
+        if (!data) return; // This happens if we switched to alternative endpoint
         
         console.log("Login response data:", data);
         if (data.success && data.role === "admin") {
@@ -85,32 +64,18 @@ function adminLogin() {
     })
     .catch(error => {
         console.error("Login Error:", error);
-        loginError.textContent = "Server error: " + error.message;
-        
-        // Try alternative login as a fallback
-        console.log("Error in primary login, trying alternative as fallback");
-        tryAlternativeLogin(username, password);
+        loginError.textContent = "Server error, please try again.";
     });
     
     // Function to try the alternative login endpoint
     function tryAlternativeLogin(username, password) {
-        const alternativeUrl = `${window.PRConfig.API_BASE_URL}/api/auth/admin`;
-        console.log("Trying alternative login URL:", alternativeUrl);
-        
-        return fetch(alternativeUrl, {
+        return fetch("/api/auth/admin", {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            },
-            body: JSON.stringify({ username, password }),
-            credentials: "same-origin"
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
         })
         .then(response => {
             console.log("Alternative login response status:", response.status);
-            if (!response.ok) {
-                throw new Error(`Alternative login HTTP error! status: ${response.status}`);
-            }
             return response.json();
         })
         .then(data => {
@@ -134,11 +99,6 @@ function adminLogin() {
                 loginError.textContent = "Invalid admin credentials!";
                 return data;
             }
-        })
-        .catch(error => {
-            console.error("Alternative login error:", error);
-            loginError.textContent = "Server error: " + error.message;
-            return { success: false, message: error.message };
         });
     }
 }
@@ -212,7 +172,7 @@ function fetchAdminStats() {
     const token = localStorage.getItem("adminToken");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
-    fetch(`${window.PRConfig.API_BASE_URL}/api/admin/stats`, {
+    fetch("/api/admin/stats", {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -302,7 +262,7 @@ function submitTournamentData(tournamentData) {
     const token = localStorage.getItem("adminToken");
     console.log("Using admin token:", token ? "Token exists" : "No token found");
 
-    fetch(`${window.PRConfig.API_BASE_URL}/api/admin/create-tournament`, {
+    fetch("/api/admin/create-tournament", {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -361,7 +321,7 @@ function clearTournamentForm() {
 }
 
 function loadTournaments() {
-    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments`)
+    fetch("/api/tournaments")
         .then(response => response.json())
         .then(tournaments => {
             const tournamentList = document.getElementById("tournament-list");
@@ -420,7 +380,7 @@ function loadTournaments() {
 }
 
 function editTournament(tournamentId) {
-    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}`)
+    fetch(`/api/tournaments/${tournamentId}`)
         .then(response => response.json())
         .then(tournament => {
             if (tournament) {
@@ -514,7 +474,7 @@ function fillTournamentForm(tournament) {
 }
 
 function viewRegistrations(tournamentId) {
-    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/registrations`)
+    fetch(`/api/tournaments/${tournamentId}/registrations`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.teams.length > 0) {
@@ -600,7 +560,7 @@ function deleteTournament(tournamentId) {
         const token = localStorage.getItem("adminToken");
         console.log("Using token for deletion:", token);
         
-        fetch(`${window.PRConfig.API_BASE_URL}/api/admin/delete-tournament/${tournamentId}`, {
+        fetch(`/api/admin/delete-tournament/${tournamentId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -629,7 +589,7 @@ function deleteTournament(tournamentId) {
 
 function removeTeam(tournamentId, teamId) {
     if (confirm("Are you sure you want to remove this team from the tournament?")) {
-        fetch(`${window.PRConfig.API_BASE_URL}/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
+        fetch(`/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -675,7 +635,7 @@ function downloadRegistrations() {
         document.body.appendChild(loadingDiv);
 
         // Fetch all tournaments
-        fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments`)
+        fetch('/api/tournaments')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch tournaments');
@@ -710,7 +670,7 @@ function downloadRegistrations() {
                     ];
 
                     // Fetch registrations for this tournament
-                    return fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournament.id}/registrations`)
+                    return fetch(`/api/tournaments/${tournament.id}/registrations`)
                         .then(response => {
                             if (!response.ok) {
                                 throw new Error('Failed to fetch registrations');
@@ -828,14 +788,14 @@ async function downloadTournamentRegistrations(tournamentId) {
         document.body.appendChild(loadingDiv);
 
         // Fetch tournament details
-        const tournamentResponse = await fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}`);
+        const tournamentResponse = await fetch(`/api/tournaments/${tournamentId}`);
         if (!tournamentResponse.ok) {
             throw new Error('Failed to fetch tournament details');
         }
         const tournament = await tournamentResponse.json();
 
         // Fetch registrations for this tournament
-        const registrationsResponse = await fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/registrations`);
+        const registrationsResponse = await fetch(`/api/tournaments/${tournamentId}/registrations`);
         if (!registrationsResponse.ok) {
             throw new Error('Failed to fetch registrations');
         }
