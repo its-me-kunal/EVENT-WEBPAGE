@@ -10,9 +10,9 @@ const multer = require("multer");
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3007;
-console.log("Using fixed port:", PORT);
-const MONGO_URI = "mongodb+srv://kunal:1234@cluster0.b5in9nl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-const GOOGLE_CLIENT_ID = "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
+console.log("Using port:", PORT);
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://kunal:1234@cluster0.b5in9nl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -105,13 +105,35 @@ const Team = mongoose.model("Team", teamSchema);
 
 // Middleware
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || "*", // Use environment variable if set, otherwise allow all origins
+    origin: function(origin, callback) {
+        // Get the allowed origins from environment variable
+        const allowedOrigins = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ["*"];
+        
+        // Check if the request origin is in the allowed origins list
+        // or if we're allowing all origins with "*"
+        if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.log(`Origin ${origin} not allowed by CORS policy. Allowed origins:`, allowedOrigins);
+            callback(null, false);
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, './')));
+
+// Add debug route to verify CORS configuration
+app.get("/api/config", (req, res) => {
+    res.json({
+        corsOrigin: process.env.CORS_ORIGIN || "*",
+        port: PORT,
+        environment: process.env.NODE_ENV || "development",
+        serverTime: new Date().toISOString()
+    });
+});
 
 // Log all requests
 app.use((req, res, next) => {
@@ -823,6 +845,11 @@ app.get('/', (req, res) => {
 // Serve admin page
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// Serve debug page
+app.get('/debug', (req, res) => {
+    res.sendFile(path.join(__dirname, 'debug.html'));
 });
 
 // Server start

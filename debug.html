@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phoenix Reaper Esports - Debug</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.js"></script>
+    <style>
+        .debug-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .debug-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .debug-title {
+            color: #ff4500;
+            margin-bottom: 10px;
+        }
+        
+        .debug-value {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        
+        .debug-btn {
+            background: #ff4500;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .debug-btn:hover {
+            background: #cc3700;
+        }
+        
+        .success {
+            color: #4CAF50;
+        }
+        
+        .error {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>Phoenix Reaper Esports - Debug Page</h1>
+        
+        <div class="debug-section">
+            <h2 class="debug-title">Environment Information</h2>
+            <div id="env-info">Loading...</div>
+            <button class="debug-btn" onclick="testServerConnection()">Test Server Connection</button>
+        </div>
+        
+        <div class="debug-section">
+            <h2 class="debug-title">Config.js Information</h2>
+            <div id="config-info">Loading...</div>
+        </div>
+        
+        <div class="debug-section">
+            <h2 class="debug-title">API Test</h2>
+            <div id="api-test">
+                <button class="debug-btn" onclick="testAPIEndpoint('/api/tournaments')">Test Tournaments API</button>
+                <button class="debug-btn" onclick="testAPIEndpoint('/api/events')">Test Events API</button>
+                <button class="debug-btn" onclick="testAPIEndpoint('/api/config')">Test Config API</button>
+                <div id="api-result" class="debug-value" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+        
+        <div class="debug-section">
+            <h2 class="debug-title">Admin Login Test</h2>
+            <div>
+                <input type="text" id="test-username" placeholder="Username" value="admin">
+                <input type="password" id="test-password" placeholder="Password" value="1234">
+                <button class="debug-btn" onclick="testAdminLogin()">Test Admin Login</button>
+                <div id="login-result" class="debug-value" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+        
+        <div class="debug-section">
+            <h2 class="debug-title">Browser Information</h2>
+            <div id="browser-info">Loading...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            displayConfigInfo();
+            displayBrowserInfo();
+        });
+        
+        function displayConfigInfo() {
+            const configInfo = document.getElementById('config-info');
+            
+            try {
+                const info = {
+                    API_BASE_URL: window.PRConfig.API_BASE_URL,
+                    GOOGLE_CLIENT_ID: window.PRConfig.GOOGLE_CLIENT_ID,
+                    IS_DEVELOPMENT: window.PRConfig.IS_DEVELOPMENT,
+                    window_location: {
+                        origin: window.location.origin,
+                        host: window.location.host,
+                        pathname: window.location.pathname
+                    }
+                };
+                
+                configInfo.innerHTML = `<pre class="debug-value">${JSON.stringify(info, null, 2)}</pre>`;
+            } catch (error) {
+                configInfo.innerHTML = `<pre class="debug-value error">Error loading config: ${error.message}</pre>`;
+            }
+        }
+        
+        function displayBrowserInfo() {
+            const browserInfo = document.getElementById('browser-info');
+            
+            const info = {
+                userAgent: navigator.userAgent,
+                cookies: navigator.cookieEnabled,
+                language: navigator.language,
+                localStorage: typeof localStorage !== 'undefined',
+                sessionStorage: typeof sessionStorage !== 'undefined'
+            };
+            
+            // Check for stored auth data
+            if (localStorage.getItem("loggedIn")) {
+                info.authStatus = {
+                    loggedIn: localStorage.getItem("loggedIn"),
+                    role: localStorage.getItem("role"),
+                    hasToken: localStorage.getItem("adminToken") ? true : false
+                };
+            }
+            
+            browserInfo.innerHTML = `<pre class="debug-value">${JSON.stringify(info, null, 2)}</pre>`;
+        }
+        
+        function testServerConnection() {
+            const envInfo = document.getElementById('env-info');
+            envInfo.innerHTML = '<div class="debug-value">Testing connection...</div>';
+            
+            fetch(`${window.PRConfig.API_BASE_URL}/api/config`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    envInfo.innerHTML = `
+                        <div class="success">✓ Connection successful</div>
+                        <pre class="debug-value">${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                })
+                .catch(error => {
+                    envInfo.innerHTML = `
+                        <div class="error">✗ Connection failed: ${error.message}</div>
+                        <div class="debug-value">
+                            This could indicate:
+                            <ul>
+                                <li>The server is not running</li>
+                                <li>CORS issues preventing the connection</li>
+                                <li>Network or firewall issues</li>
+                            </ul>
+                        </div>
+                    `;
+                });
+        }
+        
+        function testAPIEndpoint(endpoint) {
+            const apiResult = document.getElementById('api-result');
+            apiResult.innerHTML = `Testing ${endpoint}...`;
+            
+            fetch(`${window.PRConfig.API_BASE_URL}${endpoint}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    apiResult.innerHTML = `
+                        <div class="success">✓ API call successful</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                })
+                .catch(error => {
+                    apiResult.innerHTML = `
+                        <div class="error">✗ API call failed: ${error.message}</div>
+                    `;
+                });
+        }
+        
+        function testAdminLogin() {
+            const loginResult = document.getElementById('login-result');
+            const username = document.getElementById('test-username').value;
+            const password = document.getElementById('test-password').value;
+            
+            loginResult.innerHTML = 'Testing admin login...';
+            
+            fetch(`${window.PRConfig.API_BASE_URL}/api/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                loginResult.innerHTML = `
+                    <div class="success">✓ Login successful</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            })
+            .catch(error => {
+                loginResult.innerHTML = `
+                    <div class="error">✗ Login failed: ${error.message}</div>
+                `;
+                
+                // Try alternative endpoint
+                tryAlternativeLogin(username, password, loginResult);
+            });
+        }
+        
+        function tryAlternativeLogin(username, password, resultElement) {
+            resultElement.innerHTML += '<div>Trying alternative login endpoint...</div>';
+            
+            fetch(`${window.PRConfig.API_BASE_URL}/api/auth/admin`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                resultElement.innerHTML += `
+                    <div class="success">✓ Alternative login successful</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            })
+            .catch(error => {
+                resultElement.innerHTML += `
+                    <div class="error">✗ Alternative login failed: ${error.message}</div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html> 
