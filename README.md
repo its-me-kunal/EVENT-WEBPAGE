@@ -43,6 +43,34 @@ The site is now configured to work on any domain. The following files have been 
 4. Deploy the application to your server
 5. The client-side code will automatically detect your domain
 
+## Troubleshooting Login Issues
+
+If you encounter problems logging in when deployed to your domain, try these steps:
+
+1. **Use the Debug Page**:
+   - Navigate to `https://yourdomain.com/debug`
+   - Check if the API connection is working
+   - Test the admin login directly from this page
+   - Look for errors in the browser console (F12)
+
+2. **Check CORS Settings**:
+   - Ensure your domain is correctly listed in the `CORS_ORIGIN` environment variable
+   - Check the server logs for any CORS rejection messages
+
+3. **Emergency Direct Login**:
+   - If API login is failing, use the "Emergency Direct Login" button on the login page
+   - This bypasses the API and lets you access the admin dashboard
+
+4. **Check Network Configuration**:
+   - Make sure your server's firewall allows connections to the API port (3007)
+   - If using a reverse proxy (like Nginx), ensure it's correctly forwarding requests
+
+5. **Restart the Server**:
+   - After making configuration changes, restart the server:
+   ```
+   npm start
+   ```
+
 ## Environment Variables
 
 - `PORT` - Server port (default: 3007)

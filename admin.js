@@ -17,6 +17,7 @@ function adminLogin() {
     const loginError = document.getElementById("login-error");
 
     console.log("Login attempt with username:", username);
+    console.log("Using API URL:", window.PRConfig.API_BASE_URL);
 
     if (!username || !password) {
         loginError.textContent = "Username and Password cannot be empty!";
@@ -24,24 +25,44 @@ function adminLogin() {
     }
 
     console.log("Sending login request to server...");
+    loginError.textContent = "Connecting to server...";
     
-    // Use API base URL from config
-    fetch(`${window.PRConfig.API_BASE_URL}/api/login`, {
+    // Use API base URL from config with complete URL
+    const loginUrl = `${window.PRConfig.API_BASE_URL}/api/login`;
+    console.log("Login URL:", loginUrl);
+    
+    fetch(loginUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify({ username, password }),
+        credentials: "same-origin"
     })
     .then(response => {
         console.log("Login response status:", response.status);
-        if (!response.ok && response.status === 404) {
-            // If the endpoint doesn't exist, try the alternative endpoint
-            console.log("Primary endpoint failed, trying alternative endpoint");
-            return tryAlternativeLogin(username, password);
+        console.log("Login response headers:", 
+            Array.from(response.headers.entries())
+                .map(header => `${header[0]}: ${header[1]}`)
+                .join(", ")
+        );
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.log("Primary endpoint failed (404), trying alternative endpoint");
+                loginError.textContent = "Trying alternative login endpoint...";
+                return tryAlternativeLogin(username, password);
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        if (!data) return; // This happens if we switched to alternative endpoint
+        if (!data) {
+            console.log("No data received from server");
+            return; // This happens if we switched to alternative endpoint
+        }
         
         console.log("Login response data:", data);
         if (data.success && data.role === "admin") {
@@ -64,18 +85,32 @@ function adminLogin() {
     })
     .catch(error => {
         console.error("Login Error:", error);
-        loginError.textContent = "Server error, please try again.";
+        loginError.textContent = "Server error: " + error.message;
+        
+        // Try alternative login as a fallback
+        console.log("Error in primary login, trying alternative as fallback");
+        tryAlternativeLogin(username, password);
     });
     
     // Function to try the alternative login endpoint
     function tryAlternativeLogin(username, password) {
-        return fetch(`${window.PRConfig.API_BASE_URL}/api/auth/admin`, {
+        const alternativeUrl = `${window.PRConfig.API_BASE_URL}/api/auth/admin`;
+        console.log("Trying alternative login URL:", alternativeUrl);
+        
+        return fetch(alternativeUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
+            headers: { 
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({ username, password }),
+            credentials: "same-origin"
         })
         .then(response => {
             console.log("Alternative login response status:", response.status);
+            if (!response.ok) {
+                throw new Error(`Alternative login HTTP error! status: ${response.status}`);
+            }
             return response.json();
         })
         .then(data => {
@@ -99,6 +134,11 @@ function adminLogin() {
                 loginError.textContent = "Invalid admin credentials!";
                 return data;
             }
+        })
+        .catch(error => {
+            console.error("Alternative login error:", error);
+            loginError.textContent = "Server error: " + error.message;
+            return { success: false, message: error.message };
         });
     }
 }
