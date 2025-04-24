@@ -9,11 +9,10 @@ const multer = require("multer");
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 3007; // Use environment variable or fallback to 3007
-console.log("Server starting on port:", PORT);
+const PORT = 3007; // Use a fixed port to avoid conflicts
+console.log("Using fixed port:", PORT);
 const MONGO_URI = "mongodb+srv://kunal:1234@cluster0.b5in9nl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const GOOGLE_CLIENT_ID = "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
-const DOMAIN = process.env.DOMAIN || "www.phoenixreaperesports.com";
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -868,8 +867,9 @@ app.get("/api/tournaments/:id/team-registration", async (req, res) => {
     }
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Access the site at: http://${DOMAIN}`);
+// Server start
+app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`📁 Static files served from: ${path.join(__dirname, './')}`);
+    console.log(`🔗 Access your app at http://localhost:${PORT}`);
 });
