@@ -9,10 +9,10 @@ const multer = require("multer");
 
 dotenv.config();
 const app = express();
-const PORT = 3007; // Use a fixed port to avoid conflicts
-console.log("Using fixed port:", PORT);
-const MONGO_URI = "mongodb+srv://kunal:1234@cluster0.b5in9nl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-const GOOGLE_CLIENT_ID = "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
+const PORT = process.env.PORT || 3007; // Allow Vercel to set PORT
+console.log("Using port:", PORT);
+const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://kunal:1234@cluster0.b5in9nl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "429889031258-oua4vuc19jhtd5m4l75p2rm0p90n633t.apps.googleusercontent.com";
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Update the MongoDB Connection to use the hardcoded connection string
+// Update the MongoDB Connection to use the environment variable
 mongoose.connect(MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -105,7 +105,7 @@ const Team = mongoose.model("Team", teamSchema);
 
 // Middleware
 app.use(cors({
-    origin: "*", // Allow all origins
+    origin: ["https://phoenixreaperesports.com", "https://www.phoenixreaperesports.com", "http://localhost:3007"],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -207,6 +207,15 @@ app.post("/api/auth/admin", (req, res) => {
 
 // Google OAuth Login
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+// Add healthcheck endpoint
+app.get("/api/healthcheck", (req, res) => {
+    res.json({ 
+        status: "ok", 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || "development"
+    });
+});
 
 app.post("/api/google-login", async (req, res) => {
     try {
@@ -871,5 +880,5 @@ app.get("/api/tournaments/:id/team-registration", async (req, res) => {
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
     console.log(`📁 Static files served from: ${path.join(__dirname, './')}`);
-    console.log(`🔗 Access your app at http://localhost:${PORT}`);
+    console.log(`🚀 Server is running in ${process.env.NODE_ENV || 'development'} mode`);
 });

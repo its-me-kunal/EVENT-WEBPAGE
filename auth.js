@@ -199,6 +199,14 @@ function handleCredentialResponse(response) {
     // The ID token you need to pass to your backend
     const idToken = response.credential;
     
+    if (!idToken) {
+        console.error("No credential received from Google Sign-In");
+        document.getElementById("login-error").textContent = "Login failed. Please try again.";
+        return;
+    }
+    
+    console.log("Token received, sending to backend");
+    
     // Verify the token with your backend
     fetch("/api/google-login", {
         method: "POST",
@@ -208,12 +216,15 @@ function handleCredentialResponse(response) {
         body: JSON.stringify({ token: idToken })
     })
     .then(response => {
+        console.log("Backend response status:", response.status);
         if (!response.ok) {
-            throw new Error("Authentication failed");
+            throw new Error(`Authentication failed with status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
+        console.log("Login success data:", data);
+        
         // Store auth data
         localStorage.setItem("loggedIn", "true");
         localStorage.setItem("userEmail", data.user.email);
@@ -229,6 +240,8 @@ function handleCredentialResponse(response) {
         
         // Show main content based on user role
         showMainContent();
+        
+        console.log("User successfully logged in:", data.user.email);
     })
     .catch(error => {
         console.error("Authentication error:", error);
