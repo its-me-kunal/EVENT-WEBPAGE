@@ -2,125 +2,42 @@
 
 // Tournament Display on Main Page
 function loadAllTournaments() {
-    console.log("Loading tournaments...");
+    console.log("Loading all tournaments");
     
-    fetch("http://localhost:3007/api/tournaments")
+    // Show loading state
+    document.getElementById("event-list").innerHTML = '<div class="loading-spinner"></div>';
+    
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments`)
         .then(response => {
-            console.log("Response status:", response.status);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
             return response.json();
         })
         .then(tournaments => {
-            console.log("Tournaments loaded:", tournaments);
-            const eventList = document.getElementById("event-list");
-            
-            if (!eventList) {
-                console.error("Event list element not found!");
-                return;
-            }
-            
-            eventList.innerHTML = ""; // Clear previous events
-
-            if (!tournaments || tournaments.length === 0) {
-                eventList.innerHTML = "<p>No upcoming tournaments available.</p>";
-                return;
-            }
-
-            tournaments.forEach(tournament => {
-                console.log("Processing tournament:", tournament);
-                const eventCard = document.createElement('div');
-                eventCard.className = 'event-card';
-                
-                // Format dates
-                const startDate = tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : "TBD";
-                
-                // Team slots
-                const registeredTeams = tournament.registeredTeams || 0;
-                const maxTeams = tournament.maxTeams || 16;
-                const slotStatus = `${registeredTeams}/${maxTeams} Teams`;
-                
-                // Prize info
-                const prizePool = tournament.prizePool ? `₹${tournament.prizePool}` : "TBD";
-                
-                // Registration status
-                const isRegistrationOpen = tournament.registrationOpen;
-                
-                // Make sure we're getting the right ID format
-                const tournamentId = tournament.id || tournament._id;
-                
-                // Check if tournament poster exists
-                const posterHTML = tournament.tournamentPoster 
-                    ? `<div class="event-poster"><img src="${tournament.tournamentPoster}" alt="${tournament.title} Poster"></div>` 
-                    : '';
-                
-                eventCard.innerHTML = `
-                    ${posterHTML}
-                    <div class="event-info">
-                        <h3>${tournament.title || "Unnamed Tournament"}</h3>
-                        <p>${tournament.description ? tournament.description.substring(0, 100) : "No description available"}${tournament.description && tournament.description.length > 100 ? '...' : ''}</p>
-                        
-                        <div class="event-details">
-                            <div class="detail-item">
-                                <i class="fas fa-calendar"></i>
-                                <span>${startDate}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-users"></i>
-                                <span>${slotStatus}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-trophy"></i>
-                                <span>${prizePool}</span>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-clipboard-check"></i>
-                                <span class="registration-status ${isRegistrationOpen ? 'open' : 'closed'}">
-                                    ${isRegistrationOpen ? 'Open' : 'Closed'}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <button class="btn" onclick="viewTournamentDetails('${tournamentId}')">
-                            <i class="fas fa-eye"></i> View Details
-                        </button>
-                    </div>
-                `;
-                
-                eventList.appendChild(eventCard);
-            });
+            displayTournaments(tournaments);
         })
         .catch(error => {
-            console.error("Error loading tournaments:", error);
-            const eventList = document.getElementById("event-list");
-            if (eventList) {
-                eventList.innerHTML = "<p>Error loading tournaments. Please try again later.</p>";
-            }
+            console.error('Error loading tournaments:', error);
+            document.getElementById("event-list").innerHTML = 
+                '<div class="error-message">Could not load tournaments. Please try again later.</div>';
         });
 }
 
 // View Tournament Details
 function viewTournamentDetails(tournamentId) {
-    console.log("Viewing tournament details for ID:", tournamentId);
+    console.log("Loading tournament details for ID:", tournamentId);
     
-    // Show loading state in modal
-    const modal = document.getElementById('tournament-modal');
-    const modalContent = modal.querySelector('.modal-content');
+    // Show loading state
+    const modal = document.getElementById("tournament-modal");
+    const modalContent = modal.querySelector(".modal-content");
+    modalContent.innerHTML = '<div class="loading-spinner"></div>';
+    modal.style.display = "block";
     
-    if (!modalContent) {
-        console.error("Modal content element not found!");
-        showNotification("Error displaying tournament details. Please try again.", "error");
-        return;
-    }
-    
-    modalContent.innerHTML = '<div class="loading-spinner">Loading tournament details...</div>';
-    modal.style.display = 'block';
-    
-    // Get the user's email
-    const userEmail = localStorage.getItem("userEmail");
-    
-    fetch(`http://localhost:3007/api/tournaments/${tournamentId}`)
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}`)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`Server responded with status: ${response.status}`);
+                throw new Error('Network response was not ok');
             }
             return response.json();
         })
@@ -158,7 +75,7 @@ function viewTournamentDetails(tournamentId) {
                     </div>`;
 
             // Check if the user is logged in and if there are stages
-            if (userEmail && tournament.stages && tournament.stages.length > 0) {
+            if (localStorage.getItem("userEmail") && tournament.stages && tournament.stages.length > 0) {
                 tournamentHTML += `
                     <div class="team-schedule-section">
                         <h3>Your Team Schedule</h3>
@@ -291,7 +208,7 @@ function viewTournamentDetails(tournamentId) {
             modalContent.innerHTML = tournamentHTML;
 
             // If user is logged in and there are stages, check team registration
-            if (userEmail && tournament.stages && tournament.stages.length > 0) {
+            if (localStorage.getItem("userEmail") && tournament.stages && tournament.stages.length > 0) {
                 checkTeamRegistration(tournamentId, tournament.stages);
             }
 
@@ -323,14 +240,9 @@ function viewTournamentDetails(tournamentId) {
             }
         })
         .catch(error => {
-            console.error("Error loading tournament details:", error);
-            modalContent.innerHTML = `
-                <div class="error-message">
-                    <h3>Error Loading Tournament</h3>
-                    <p>Unable to load tournament details. Please try again later.</p>
-                    <button class="btn" onclick="closeModal()">Close</button>
-                </div>
-            `;
+            console.error('Error loading tournament details:', error);
+            modalContent.innerHTML = 
+                '<div class="error-message">Could not load tournament details. Please try again later.</div>';
         });
 }
 
@@ -346,7 +258,7 @@ function checkTeamRegistration(tournamentId, stages) {
     }
 
     // Fetch teams for this tournament and check if the user's team is registered
-    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/team-registration?email=${encodeURIComponent(userEmail)}`)
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/team-registration?email=${encodeURIComponent(userEmail)}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Server responded with status: ${response.status}`);
@@ -555,7 +467,7 @@ function submitRegistration(event, tournamentId) {
     }
 
     // Submit the form data to the server
-    fetch(`http://localhost:3007/api/tournaments/${tournamentId}/register`, {
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/register`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${token}`
@@ -683,6 +595,87 @@ function scrollToEvents() {
     }
 }
 
+// Function to display tournaments
+function displayTournaments(tournaments) {
+    console.log("Tournaments loaded:", tournaments);
+    const eventList = document.getElementById("event-list");
+    
+    if (!eventList) {
+        console.error("Event list element not found!");
+        return;
+    }
+    
+    eventList.innerHTML = ""; // Clear previous events
+
+    if (!tournaments || tournaments.length === 0) {
+        eventList.innerHTML = "<p>No upcoming tournaments available.</p>";
+        return;
+    }
+
+    tournaments.forEach(tournament => {
+        console.log("Processing tournament:", tournament);
+        const eventCard = document.createElement('div');
+        eventCard.className = 'event-card';
+        
+        // Format dates
+        const startDate = tournament.startDate ? new Date(tournament.startDate).toLocaleDateString() : "TBD";
+        
+        // Team slots
+        const registeredTeams = tournament.registeredTeams || 0;
+        const maxTeams = tournament.maxTeams || 16;
+        const slotStatus = `${registeredTeams}/${maxTeams} Teams`;
+        
+        // Prize info
+        const prizePool = tournament.prizePool ? `₹${tournament.prizePool}` : "TBD";
+        
+        // Registration status
+        const isRegistrationOpen = tournament.registrationOpen;
+        
+        // Make sure we're getting the right ID format
+        const tournamentId = tournament.id || tournament._id;
+        
+        // Check if tournament poster exists
+        const posterHTML = tournament.tournamentPoster 
+            ? `<div class="event-poster"><img src="${tournament.tournamentPoster}" alt="${tournament.title} Poster"></div>` 
+            : '';
+        
+        eventCard.innerHTML = `
+            ${posterHTML}
+            <div class="event-info">
+                <h3>${tournament.title || "Unnamed Tournament"}</h3>
+                <p>${tournament.description ? tournament.description.substring(0, 100) : "No description available"}${tournament.description && tournament.description.length > 100 ? '...' : ''}</p>
+                
+                <div class="event-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>${startDate}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-users"></i>
+                        <span>${slotStatus}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-trophy"></i>
+                        <span>${prizePool}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span class="registration-status ${isRegistrationOpen ? 'open' : 'closed'}">
+                            ${isRegistrationOpen ? 'Open' : 'Closed'}
+                        </span>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="viewTournamentDetails('${tournamentId}')">
+                    <i class="fas fa-eye"></i> View Details
+                </button>
+            </div>
+        `;
+        
+        eventList.appendChild(eventCard);
+    });
+}
+
 // Make sure tournaments load when page is ready
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOM fully loaded");
@@ -703,4 +696,45 @@ document.addEventListener("DOMContentLoaded", () => {
             loadAllTournaments();
         }
     }
-}); 
+});
+
+// Check if user already registered
+function checkRegistration(tournamentId, userEmail) {
+    console.log("Checking registration for tournament:", tournamentId, "user:", userEmail);
+    
+    return fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/team-registration?email=${encodeURIComponent(userEmail)}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Registration check result:", data);
+            return data;
+        })
+        .catch(error => {
+            console.error("Error checking registration:", error);
+            return { success: false, message: "Error checking registration status" };
+        });
+}
+
+// Function to register a team
+function registerTeam(tournamentId, formData) {
+    console.log("Submitting registration for tournament:", tournamentId);
+    
+    const submitButton = document.querySelector('#registration-form button[type="submit"]');
+    const originalText = submitButton.textContent;
+    submitButton.textContent = 'Registering...';
+    submitButton.disabled = true;
+    
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/register`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        // ... existing code ...
+    })
+    .catch(error => {
+        // ... existing code ...
+    });
+} 

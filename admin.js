@@ -25,8 +25,8 @@ function adminLogin() {
 
     console.log("Sending login request to server...");
     
-    // Try the primary login endpoint first with relative URL
-    fetch("/api/login", {
+    // Use API base URL from config
+    fetch(`${window.PRConfig.API_BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
@@ -69,7 +69,7 @@ function adminLogin() {
     
     // Function to try the alternative login endpoint
     function tryAlternativeLogin(username, password) {
-        return fetch("/api/auth/admin", {
+        return fetch(`${window.PRConfig.API_BASE_URL}/api/auth/admin`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password })
@@ -172,7 +172,7 @@ function fetchAdminStats() {
     const token = localStorage.getItem("adminToken");
     console.log("Using token for stats:", token ? "Token exists" : "No token found");
 
-    fetch("/api/admin/stats", {
+    fetch(`${window.PRConfig.API_BASE_URL}/api/admin/stats`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -262,7 +262,7 @@ function submitTournamentData(tournamentData) {
     const token = localStorage.getItem("adminToken");
     console.log("Using admin token:", token ? "Token exists" : "No token found");
 
-    fetch("/api/admin/create-tournament", {
+    fetch(`${window.PRConfig.API_BASE_URL}/api/admin/create-tournament`, {
         method: "POST",
         headers: { 
             "Content-Type": "application/json",
@@ -321,7 +321,7 @@ function clearTournamentForm() {
 }
 
 function loadTournaments() {
-    fetch("/api/tournaments")
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments`)
         .then(response => response.json())
         .then(tournaments => {
             const tournamentList = document.getElementById("tournament-list");
@@ -380,7 +380,7 @@ function loadTournaments() {
 }
 
 function editTournament(tournamentId) {
-    fetch(`/api/tournaments/${tournamentId}`)
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}`)
         .then(response => response.json())
         .then(tournament => {
             if (tournament) {
@@ -474,7 +474,7 @@ function fillTournamentForm(tournament) {
 }
 
 function viewRegistrations(tournamentId) {
-    fetch(`/api/tournaments/${tournamentId}/registrations`)
+    fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/registrations`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.teams.length > 0) {
@@ -560,7 +560,7 @@ function deleteTournament(tournamentId) {
         const token = localStorage.getItem("adminToken");
         console.log("Using token for deletion:", token);
         
-        fetch(`/api/admin/delete-tournament/${tournamentId}`, {
+        fetch(`${window.PRConfig.API_BASE_URL}/api/admin/delete-tournament/${tournamentId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -589,7 +589,7 @@ function deleteTournament(tournamentId) {
 
 function removeTeam(tournamentId, teamId) {
     if (confirm("Are you sure you want to remove this team from the tournament?")) {
-        fetch(`/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
+        fetch(`${window.PRConfig.API_BASE_URL}/api/admin/tournaments/${tournamentId}/teams/${teamId}`, {
             method: "DELETE",
             headers: { 
                 "Content-Type": "application/json",
@@ -635,7 +635,7 @@ function downloadRegistrations() {
         document.body.appendChild(loadingDiv);
 
         // Fetch all tournaments
-        fetch('/api/tournaments')
+        fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch tournaments');
@@ -670,7 +670,7 @@ function downloadRegistrations() {
                     ];
 
                     // Fetch registrations for this tournament
-                    return fetch(`/api/tournaments/${tournament.id}/registrations`)
+                    return fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournament.id}/registrations`)
                         .then(response => {
                             if (!response.ok) {
                                 throw new Error('Failed to fetch registrations');
@@ -788,14 +788,14 @@ async function downloadTournamentRegistrations(tournamentId) {
         document.body.appendChild(loadingDiv);
 
         // Fetch tournament details
-        const tournamentResponse = await fetch(`/api/tournaments/${tournamentId}`);
+        const tournamentResponse = await fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}`);
         if (!tournamentResponse.ok) {
             throw new Error('Failed to fetch tournament details');
         }
         const tournament = await tournamentResponse.json();
 
         // Fetch registrations for this tournament
-        const registrationsResponse = await fetch(`/api/tournaments/${tournamentId}/registrations`);
+        const registrationsResponse = await fetch(`${window.PRConfig.API_BASE_URL}/api/tournaments/${tournamentId}/registrations`);
         if (!registrationsResponse.ok) {
             throw new Error('Failed to fetch registrations');
         }
