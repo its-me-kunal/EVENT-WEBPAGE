@@ -11,7 +11,7 @@ function getApiUrl() {
         return 'http://localhost:3007';
     } else {
         // Return just the path for production or use your production URL
-        return '';
+        return 'http://www.phoenixreaperesports.com';
     }
 }
 
